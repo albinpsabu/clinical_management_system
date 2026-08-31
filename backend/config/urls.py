@@ -5,8 +5,11 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    path(
-        "receptionist/",
-        include("receptionist.urls")
-    ),
+
+    path("receptionist/", include("receptionist.urls")),
+
+
+
+
+
 ]

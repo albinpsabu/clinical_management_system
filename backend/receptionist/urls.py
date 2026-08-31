@@ -1,5 +1,6 @@
 from django.urls import path
 
+
 from .views import (
     PatientListCreateView,
     PatientDetailView,
@@ -45,3 +46,4 @@ urlpatterns = [
         name="payment-complete"
     ),
 ]
+

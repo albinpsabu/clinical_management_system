@@ -33,9 +33,7 @@ class PatientListCreateView(APIView):
                 return Response(
                     {
                         "message": "Patient already exists",
-                        "patient": PatientSerializer(
-                            existing_patient
-                        ).data,
+                        "patient": PatientSerializer(existing_patient).data,
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -178,9 +176,7 @@ class PaymentCompleteView(APIView):
             ).order_by("-token_no").first()
 
             if last_token:
-                appointment.token_no = (
-                    last_token.token_no + 1
-                )
+                appointment.token_no = last_token.token_no + 1
             else:
                 appointment.token_no = 1
 
