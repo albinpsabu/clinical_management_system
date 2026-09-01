@@ -11,4 +11,6 @@ urlpatterns = [
     path("receptionist/", include("receptionist.urls")),
     
     path("doctor/", include("doctor.urls")),
+
+    path("laboratory/", include("laboratory.urls")),
 ]
