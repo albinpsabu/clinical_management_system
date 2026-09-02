@@ -43,6 +43,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
+
         fields = [
             "id",
             "patient",
@@ -68,6 +69,28 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
+    def validate(self, attrs):
+
+        patient = attrs.get("patient")
+        doctor = attrs.get("doctor")
+        appointment_date = attrs.get("appointment_date")
+
+        # Check whether this patient already has
+        # an appointment with the same doctor on the same date
+        if Appointment.objects.filter(
+            patient=patient,
+            doctor=doctor,
+            appointment_date=appointment_date
+        ).exists():
+
+            raise serializers.ValidationError({
+                "appointment_date":
+                    "This patient already has an appointment "
+                    "with this doctor on this date."
+            })
+
+        return attrs
+
 
 class ConsultationBillSerializer(serializers.ModelSerializer):
 
@@ -78,6 +101,7 @@ class ConsultationBillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConsultationBill
+
         fields = [
             "id",
             "bill_id",

@@ -50,6 +50,14 @@ class Appointment(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["patient", "doctor", "appointment_date"],
+                name="unique_patient_doctor_per_day"
+            )
+        ]
+
     def __str__(self):
         return (
             f"{self.patient} - "
