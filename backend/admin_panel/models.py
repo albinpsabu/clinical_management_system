@@ -100,6 +100,31 @@ class Medicine(models.Model):
         blank=True
     )
 
+    stock_quantity = models.PositiveIntegerField(
+        default=0
+    )
+
+    batch_number = models.CharField(
+        max_length=50,
+        blank=True
+    )
+
+    manufacture_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    expiry_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    price_per_unit = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
     status = models.CharField(
         max_length=20,
         choices=[
@@ -111,7 +136,6 @@ class Medicine(models.Model):
 
     def __str__(self):
         return f"{self.medicine_id} - {self.name}"
-
 
 class LabTest(models.Model):
     test_id = models.CharField(

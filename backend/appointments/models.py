@@ -21,7 +21,11 @@ class Appointment(models.Model):
         related_name="appointments"
     )
 
-    doctor_id = models.PositiveIntegerField()
+    doctor = models.ForeignKey(
+        "admin_panel.Doctor",
+        on_delete=models.PROTECT,
+        related_name="appointments"
+    )
 
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
@@ -49,6 +53,6 @@ class Appointment(models.Model):
     def __str__(self):
         return (
             f"{self.patient} - "
-            f"Doctor {self.doctor_id} - "
+            f"Doctor {self.doctor.doctor_id} - "
             f"{self.appointment_date}"
         )

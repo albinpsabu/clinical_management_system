@@ -81,8 +81,10 @@ class MedicinePrescription(models.Model):
         related_name="medicine_prescriptions"
     )
 
-    medicine_name = models.CharField(
-        max_length=200
+    medicine = models.ForeignKey(
+        "admin_panel.Medicine",
+        on_delete=models.PROTECT,
+        related_name="prescriptions"
     )
 
     dosage = models.CharField(
@@ -115,7 +117,7 @@ class MedicinePrescription(models.Model):
     def __str__(self):
         return (
             f"{self.prescription_id} - "
-            f"{self.medicine_name}"
+            f"{self.medicine.name}"
         )
 
 

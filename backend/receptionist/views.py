@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import IsReceptionist
+
 from patients.models import Patient
 from appointments.models import Appointment
 
@@ -13,27 +15,44 @@ from .serializers import (
 )
 
 
+# ============================================================
+# PATIENT LIST / CREATE
+# ============================================================
+
 class PatientListCreateView(APIView):
+    permission_classes = [IsReceptionist]
 
     def get(self, request):
         patients = Patient.objects.all().order_by("-id")
-        serializer = PatientSerializer(patients, many=True)
+
+        serializer = PatientSerializer(
+            patients,
+            many=True
+        )
 
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = PatientSerializer(data=request.data)
+        serializer = PatientSerializer(
+            data=request.data
+        )
 
         if serializer.is_valid():
+
             phone = serializer.validated_data.get("phone")
 
             if Patient.objects.filter(phone=phone).exists():
-                existing_patient = Patient.objects.get(phone=phone)
+
+                existing_patient = Patient.objects.get(
+                    phone=phone
+                )
 
                 return Response(
                     {
                         "message": "Patient already exists",
-                        "patient": PatientSerializer(existing_patient).data,
+                        "patient": PatientSerializer(
+                            existing_patient
+                        ).data,
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -51,7 +70,12 @@ class PatientListCreateView(APIView):
         )
 
 
+# ============================================================
+# PATIENT DETAILS
+# ============================================================
+
 class PatientDetailView(APIView):
+    permission_classes = [IsReceptionist]
 
     def get(self, request, patient_id):
 
@@ -59,7 +83,9 @@ class PatientDetailView(APIView):
             patient = Patient.objects.get(
                 patient_id=patient_id
             )
+
         except Patient.DoesNotExist:
+
             return Response(
                 {"error": "Patient not found"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -70,12 +96,18 @@ class PatientDetailView(APIView):
         return Response(serializer.data)
 
 
+# ============================================================
+# APPOINTMENT LIST / CREATE
+# ============================================================
+
 class AppointmentListCreateView(APIView):
+    permission_classes = [IsReceptionist]
 
     def get(self, request):
 
         appointments = Appointment.objects.select_related(
-            "patient"
+            "patient",
+            "doctor"
         ).all().order_by(
             "appointment_date",
             "appointment_time"
@@ -96,10 +128,27 @@ class AppointmentListCreateView(APIView):
 
         if serializer.is_valid():
 
+            doctor = serializer.validated_data["doctor"]
+
+            # Only active doctors can receive appointments
+            if doctor.status != "Active":
+
+                return Response(
+                    {
+                        "doctor": (
+                            "Appointments can only be created "
+                            "for active doctors."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             appointment = serializer.save()
 
             return Response(
-                AppointmentSerializer(appointment).data,
+                AppointmentSerializer(
+                    appointment
+                ).data,
                 status=status.HTTP_201_CREATED,
             )
 
@@ -109,14 +158,21 @@ class AppointmentListCreateView(APIView):
         )
 
 
+# ============================================================
+# CONSULTATION BILL LIST / CREATE
+# ============================================================
+
 class ConsultationBillListCreateView(APIView):
+    permission_classes = [IsReceptionist]
 
     def get(self, request):
 
         bills = ConsultationBill.objects.select_related(
             "patient",
             "appointment"
-        ).all().order_by("-created_at")
+        ).all().order_by(
+            "-created_at"
+        )
 
         serializer = ConsultationBillSerializer(
             bills,
@@ -136,7 +192,9 @@ class ConsultationBillListCreateView(APIView):
             bill = serializer.save()
 
             return Response(
-                ConsultationBillSerializer(bill).data,
+                ConsultationBillSerializer(
+                    bill
+                ).data,
                 status=status.HTTP_201_CREATED,
             )
 
@@ -146,7 +204,12 @@ class ConsultationBillListCreateView(APIView):
         )
 
 
+# ============================================================
+# PAYMENT COMPLETE
+# ============================================================
+
 class PaymentCompleteView(APIView):
+    permission_classes = [IsReceptionist]
 
     def post(self, request, bill_id):
 
@@ -154,6 +217,7 @@ class PaymentCompleteView(APIView):
             bill = ConsultationBill.objects.get(
                 bill_id=bill_id
             )
+
         except ConsultationBill.DoesNotExist:
 
             return Response(
@@ -161,8 +225,23 @@ class PaymentCompleteView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Prevent paying an already completed bill
+        if bill.payment_status == "COMPLETED":
+
+            return Response(
+                {
+                    "message": "Payment already completed",
+                    "bill_id": bill.bill_id,
+                    "payment_status": bill.payment_status,
+                    "token_no": bill.appointment.token_no,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         bill.payment_status = "COMPLETED"
-        bill.save()
+        bill.save(
+            update_fields=["payment_status"]
+        )
 
         # Token is generated only after payment
         appointment = bill.appointment
@@ -173,14 +252,20 @@ class PaymentCompleteView(APIView):
                 appointment_date=appointment.appointment_date
             ).exclude(
                 token_no=None
-            ).order_by("-token_no").first()
+            ).order_by(
+                "-token_no"
+            ).first()
 
             if last_token:
-                appointment.token_no = last_token.token_no + 1
+                appointment.token_no = (
+                    last_token.token_no + 1
+                )
             else:
                 appointment.token_no = 1
 
-            appointment.save()
+            appointment.save(
+                update_fields=["token_no"]
+            )
 
         return Response(
             {
@@ -188,5 +273,6 @@ class PaymentCompleteView(APIView):
                 "bill_id": bill.bill_id,
                 "payment_status": bill.payment_status,
                 "token_no": appointment.token_no,
-            }
+            },
+            status=status.HTTP_200_OK,
         )

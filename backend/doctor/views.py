@@ -1,9 +1,10 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from accounts.permissions import IsDoctor
 
+from admin_panel.models import Doctor
 from appointments.models import Appointment
 from patients.models import Patient
 
@@ -12,6 +13,7 @@ from .models import (
     MedicinePrescription,
     LabPrescription,
 )
+
 from .serializers import (
     ConsultationSerializer,
     MedicinePrescriptionSerializer,
@@ -19,14 +21,31 @@ from .serializers import (
 )
 
 
+# ============================================================
+# DOCTOR - VIEW APPOINTMENTS
+# ============================================================
+
 class DoctorAppointmentListView(APIView):
     permission_classes = [IsDoctor]
 
     def get(self, request):
+
+        try:
+            doctor = Doctor.objects.get(
+                user=request.user
+            )
+
+        except Doctor.DoesNotExist:
+            return Response(
+                {"error": "Doctor profile not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         appointments = Appointment.objects.select_related(
-            "patient"
+            "patient",
+            "doctor"
         ).filter(
-            doctor_id=request.user.id
+            doctor=doctor
         ).order_by(
             "appointment_date",
             "appointment_time"
@@ -40,6 +59,11 @@ class DoctorAppointmentListView(APIView):
                 "patient": appointment.patient.id,
                 "patient_id": appointment.patient.patient_id,
                 "patient_name": appointment.patient.name,
+
+                "doctor": appointment.doctor.id,
+                "doctor_id": appointment.doctor.doctor_id,
+                "doctor_name": appointment.doctor.name,
+
                 "appointment_date": appointment.appointment_date,
                 "appointment_time": appointment.appointment_time,
                 "appointment_type": appointment.appointment_type,
@@ -50,14 +74,20 @@ class DoctorAppointmentListView(APIView):
         return Response(data)
 
 
+# ============================================================
+# DOCTOR - VIEW PATIENT DETAILS
+# ============================================================
+
 class DoctorPatientDetailView(APIView):
     permission_classes = [IsDoctor]
 
     def get(self, request, patient_id):
+
         try:
             patient = Patient.objects.get(
                 patient_id=patient_id
             )
+
         except Patient.DoesNotExist:
             return Response(
                 {"error": "Patient not found"},
@@ -84,18 +114,27 @@ class DoctorPatientDetailView(APIView):
                 "blood_group": patient.blood_group,
                 "status": patient.status,
             },
+
             "consultations": serializer.data,
         })
 
+
+# ============================================================
+# DOCTOR - CONSULTATIONS
+# ============================================================
 
 class ConsultationListCreateView(APIView):
     permission_classes = [IsDoctor]
 
     def get(self, request):
+
         consultations = Consultation.objects.select_related(
             "patient",
-            "appointment"
-        ).all().order_by("-created_at")
+            "appointment",
+            "appointment__doctor"
+        ).all().order_by(
+            "-created_at"
+        )
 
         serializer = ConsultationSerializer(
             consultations,
@@ -105,18 +144,25 @@ class ConsultationListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+
         serializer = ConsultationSerializer(
-            data=request.data
+            data=request.data,
+            context={"request": request}
         )
 
         if serializer.is_valid():
+
             consultation = serializer.save()
 
             appointment = consultation.appointment
 
             if appointment.status == "BOOKED":
+
                 appointment.status = "CONSULTED"
-                appointment.save()
+
+                appointment.save(
+                    update_fields=["status"]
+                )
 
             return Response(
                 ConsultationSerializer(
@@ -131,14 +177,22 @@ class ConsultationListCreateView(APIView):
         )
 
 
+# ============================================================
+# DOCTOR - MEDICINE PRESCRIPTIONS
+# ============================================================
+
 class MedicinePrescriptionListCreateView(APIView):
     permission_classes = [IsDoctor]
 
     def get(self, request):
+
         prescriptions = MedicinePrescription.objects.select_related(
             "consultation",
-            "consultation__patient"
-        ).all().order_by("-created_at")
+            "consultation__patient",
+            "medicine",
+        ).all().order_by(
+            "-created_at"
+        )
 
         serializer = MedicinePrescriptionSerializer(
             prescriptions,
@@ -148,11 +202,13 @@ class MedicinePrescriptionListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+
         serializer = MedicinePrescriptionSerializer(
             data=request.data
         )
 
         if serializer.is_valid():
+
             prescription = serializer.save()
 
             return Response(
@@ -168,14 +224,21 @@ class MedicinePrescriptionListCreateView(APIView):
         )
 
 
+# ============================================================
+# DOCTOR - LAB PRESCRIPTIONS
+# ============================================================
+
 class LabPrescriptionListCreateView(APIView):
     permission_classes = [IsDoctor]
 
     def get(self, request):
+
         lab_prescriptions = LabPrescription.objects.select_related(
             "consultation",
             "consultation__patient"
-        ).all().order_by("-created_at")
+        ).all().order_by(
+            "-created_at"
+        )
 
         serializer = LabPrescriptionSerializer(
             lab_prescriptions,
@@ -185,11 +248,13 @@ class LabPrescriptionListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+
         serializer = LabPrescriptionSerializer(
             data=request.data
         )
 
         if serializer.is_valid():
+
             lab_prescription = serializer.save()
 
             return Response(

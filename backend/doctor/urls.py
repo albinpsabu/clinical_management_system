@@ -27,7 +27,7 @@ urlpatterns = [
         views.MedicinePrescriptionListCreateView.as_view(),
         name="medicine-prescriptions",
     ),
-
+    
     path(
         "prescriptions/labs/",
         views.LabPrescriptionListCreateView.as_view(),

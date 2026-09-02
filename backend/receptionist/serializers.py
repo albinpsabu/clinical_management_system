@@ -31,13 +31,25 @@ class AppointmentSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    doctor_name = serializers.CharField(
+        source="doctor.name",
+        read_only=True
+    )
+
+    doctor_code = serializers.CharField(
+        source="doctor.doctor_id",
+        read_only=True
+    )
+
     class Meta:
         model = Appointment
         fields = [
             "id",
             "patient",
             "patient_name",
-            "doctor_id",
+            "doctor",
+            "doctor_name",
+            "doctor_code",
             "appointment_date",
             "appointment_time",
             "appointment_type",
@@ -47,6 +59,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = [
+            "id",
+            "patient_name",
+            "doctor_name",
+            "doctor_code",
             "token_no",
             "status",
             "created_at",
