@@ -1,18 +1,22 @@
 from django.urls import path
 
-
 from .views import (
     PatientListCreateView,
     PatientDetailView,
     AppointmentListCreateView,
+    AppointmentCancelView,
     ConsultationBillListCreateView,
     PaymentCompleteView,
+    DoctorListView,
 )
 
 
 urlpatterns = [
 
-    # Patients
+    # ========================================================
+    # PATIENTS
+    # ========================================================
+
     path(
         "patients/",
         PatientListCreateView.as_view(),
@@ -25,25 +29,49 @@ urlpatterns = [
         name="patient-detail"
     ),
 
-    # Appointments
+    # ========================================================
+    # DOCTORS
+    # ========================================================
+
+    path(
+        "doctors/",
+        DoctorListView.as_view(),
+        name="doctor-list"
+    ),
+
+    # ========================================================
+    # APPOINTMENTS
+    # ========================================================
+
     path(
         "appointments/",
         AppointmentListCreateView.as_view(),
         name="appointment-list-create"
     ),
 
-    # Consultation billing
+    path(
+        "appointments/<int:appointment_id>/cancel/",
+        AppointmentCancelView.as_view(),
+        name="appointment-cancel"
+    ),
+
+    # ========================================================
+    # BILLING
+    # ========================================================
+
     path(
         "billing/",
         ConsultationBillListCreateView.as_view(),
         name="billing-list-create"
     ),
 
-    # Payment
+    # ========================================================
+    # PAYMENT
+    # ========================================================
+
     path(
         "billing/<str:bill_id>/pay/",
         PaymentCompleteView.as_view(),
         name="payment-complete"
     ),
 ]
-

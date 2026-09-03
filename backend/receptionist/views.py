@@ -6,6 +6,7 @@ from accounts.permissions import IsReceptionist
 
 from patients.models import Patient
 from appointments.models import Appointment
+from admin_panel.models import Doctor
 
 from .models import ConsultationBill
 from .serializers import (
@@ -23,6 +24,7 @@ class PatientListCreateView(APIView):
     permission_classes = [IsReceptionist]
 
     def get(self, request):
+
         patients = Patient.objects.all().order_by("-id")
 
         serializer = PatientSerializer(
@@ -33,6 +35,7 @@ class PatientListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+
         serializer = PatientSerializer(
             data=request.data
         )
@@ -71,15 +74,20 @@ class PatientListCreateView(APIView):
 
 
 # ============================================================
-# PATIENT DETAILS
+# PATIENT DETAILS / EDIT / DELETE
 # ============================================================
 
 class PatientDetailView(APIView):
     permission_classes = [IsReceptionist]
 
+    # --------------------------------------------------------
+    # GET PATIENT
+    # --------------------------------------------------------
+
     def get(self, request, patient_id):
 
         try:
+
             patient = Patient.objects.get(
                 patient_id=patient_id
             )
@@ -87,13 +95,130 @@ class PatientDetailView(APIView):
         except Patient.DoesNotExist:
 
             return Response(
-                {"error": "Patient not found"},
+                {
+                    "error": "Patient not found"
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = PatientSerializer(patient)
 
         return Response(serializer.data)
+
+    # --------------------------------------------------------
+    # EDIT PATIENT
+    # --------------------------------------------------------
+
+    def patch(self, request, patient_id):
+
+        try:
+
+            patient = Patient.objects.get(
+                patient_id=patient_id
+            )
+
+        except Patient.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Patient not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = PatientSerializer(
+            patient,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+
+            # Prevent duplicate mobile number
+            phone = serializer.validated_data.get(
+                "phone"
+            )
+
+            if phone:
+
+                existing_patient = Patient.objects.filter(
+                    phone=phone
+                ).exclude(
+                    id=patient.id
+                ).first()
+
+                if existing_patient:
+
+                    return Response(
+                        {
+                            "phone": [
+                                "Another patient already uses this mobile number."
+                            ]
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            updated_patient = serializer.save()
+
+            return Response(
+                PatientSerializer(
+                    updated_patient
+                ).data,
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # --------------------------------------------------------
+    # DELETE PATIENT
+    # --------------------------------------------------------
+
+    def delete(self, request, patient_id):
+
+        try:
+
+            patient = Patient.objects.get(
+                patient_id=patient_id
+            )
+
+        except Patient.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Patient not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # ----------------------------------------------------
+        # Do not delete patients with appointments
+        # ----------------------------------------------------
+
+        if Appointment.objects.filter(
+            patient=patient
+        ).exists():
+
+            return Response(
+                {
+                    "error": (
+                        "This patient cannot be deleted because "
+                        "appointments are associated with the patient."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        patient.delete()
+
+        return Response(
+            {
+                "message": "Patient deleted successfully."
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # ============================================================
@@ -102,6 +227,10 @@ class PatientDetailView(APIView):
 
 class AppointmentListCreateView(APIView):
     permission_classes = [IsReceptionist]
+
+    # --------------------------------------------------------
+    # LIST APPOINTMENTS
+    # --------------------------------------------------------
 
     def get(self, request):
 
@@ -119,6 +248,10 @@ class AppointmentListCreateView(APIView):
         )
 
         return Response(serializer.data)
+
+    # --------------------------------------------------------
+    # CREATE APPOINTMENT
+    # --------------------------------------------------------
 
     def post(self, request):
 
@@ -159,11 +292,98 @@ class AppointmentListCreateView(APIView):
 
 
 # ============================================================
+# CANCEL APPOINTMENT
+# ============================================================
+
+class AppointmentCancelView(APIView):
+    permission_classes = [IsReceptionist]
+
+    def post(self, request, appointment_id):
+
+        # ----------------------------------------------------
+        # Find appointment
+        # ----------------------------------------------------
+
+        try:
+
+            appointment = Appointment.objects.select_related(
+                "patient",
+                "doctor"
+            ).get(
+                id=appointment_id
+            )
+
+        except Appointment.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Appointment not found."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # ----------------------------------------------------
+        # Already cancelled
+        # ----------------------------------------------------
+
+        if appointment.status == "CANCELLED":
+
+            return Response(
+                {
+                    "message": "Appointment is already cancelled.",
+                    "appointment": AppointmentSerializer(
+                        appointment
+                    ).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # ----------------------------------------------------
+        # Cannot cancel consulted appointment
+        # ----------------------------------------------------
+
+        if appointment.status == "CONSULTED":
+
+            return Response(
+                {
+                    "error": (
+                        "A consulted appointment cannot be cancelled."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ----------------------------------------------------
+        # Cancel appointment
+        # ----------------------------------------------------
+
+        appointment.status = "CANCELLED"
+
+        appointment.save(
+            update_fields=["status"]
+        )
+
+        return Response(
+            {
+                "message": "Appointment cancelled successfully.",
+                "appointment": AppointmentSerializer(
+                    appointment
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ============================================================
 # CONSULTATION BILL LIST / CREATE
 # ============================================================
 
 class ConsultationBillListCreateView(APIView):
     permission_classes = [IsReceptionist]
+
+    # --------------------------------------------------------
+    # LIST BILLS
+    # --------------------------------------------------------
 
     def get(self, request):
 
@@ -180,6 +400,10 @@ class ConsultationBillListCreateView(APIView):
         )
 
         return Response(serializer.data)
+
+    # --------------------------------------------------------
+    # CREATE BILL
+    # --------------------------------------------------------
 
     def post(self, request):
 
@@ -213,19 +437,31 @@ class PaymentCompleteView(APIView):
 
     def post(self, request, bill_id):
 
+        # ----------------------------------------------------
+        # Find bill
+        # ----------------------------------------------------
+
         try:
-            bill = ConsultationBill.objects.get(
+
+            bill = ConsultationBill.objects.select_related(
+                "appointment"
+            ).get(
                 bill_id=bill_id
             )
 
         except ConsultationBill.DoesNotExist:
 
             return Response(
-                {"error": "Bill not found"},
+                {
+                    "error": "Bill not found"
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Prevent paying an already completed bill
+        # ----------------------------------------------------
+        # Prevent duplicate payment
+        # ----------------------------------------------------
+
         if bill.payment_status == "COMPLETED":
 
             return Response(
@@ -238,12 +474,20 @@ class PaymentCompleteView(APIView):
                 status=status.HTTP_200_OK,
             )
 
+        # ----------------------------------------------------
+        # Complete payment
+        # ----------------------------------------------------
+
         bill.payment_status = "COMPLETED"
+
         bill.save(
             update_fields=["payment_status"]
         )
 
-        # Token is generated only after payment
+        # ----------------------------------------------------
+        # Generate token
+        # ----------------------------------------------------
+
         appointment = bill.appointment
 
         if appointment.token_no is None:
@@ -257,15 +501,22 @@ class PaymentCompleteView(APIView):
             ).first()
 
             if last_token:
+
                 appointment.token_no = (
                     last_token.token_no + 1
                 )
+
             else:
+
                 appointment.token_no = 1
 
             appointment.save(
                 update_fields=["token_no"]
             )
+
+        # ----------------------------------------------------
+        # Response
+        # ----------------------------------------------------
 
         return Response(
             {
@@ -276,3 +527,45 @@ class PaymentCompleteView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+# ============================================================
+# ACTIVE DOCTOR LIST
+# ============================================================
+
+class DoctorListView(APIView):
+    permission_classes = [IsReceptionist]
+
+    def get(self, request):
+
+        doctors = Doctor.objects.select_related(
+            "department"
+        ).filter(
+            status="Active"
+        ).order_by(
+            "name"
+        )
+
+        data = []
+
+        for doctor in doctors:
+
+            data.append(
+                {
+                    "id": doctor.id,
+                    "doctor_id": doctor.doctor_id,
+                    "name": doctor.name,
+                    "specialization": doctor.specialization,
+                    "department": (
+                        doctor.department.name
+                        if doctor.department
+                        else ""
+                    ),
+                    "consultation_fee": str(
+                        doctor.consultation_fee
+                    ),
+                    "status": doctor.status,
+                }
+            )
+
+        return Response(data)
