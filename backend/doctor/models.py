@@ -1,7 +1,7 @@
 from django.db import models
 # Create your models here.
 from django.db import models
-
+from admin_panel.models import LabTest
 from patients.models import Patient
 from appointments.models import Appointment
 
@@ -134,9 +134,11 @@ class LabPrescription(models.Model):
         related_name="lab_prescriptions"
     )
 
-    test_name = models.CharField(
-        max_length=200
-    )
+    lab_test = models.ForeignKey(
+    LabTest,
+    on_delete=models.PROTECT,
+    related_name="lab_prescriptions"
+)
 
     clinical_reason = models.TextField(
         blank=True,
@@ -174,5 +176,5 @@ class LabPrescription(models.Model):
     def __str__(self):
         return (
             f"{self.lab_request_id} - "
-            f"{self.test_name}"
-        )
+            f"{self.lab_test.name}"
+        )   

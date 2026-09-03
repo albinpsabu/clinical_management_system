@@ -12,7 +12,6 @@ class LabTestSerializer(serializers.ModelSerializer):
         model = LabTest
         fields = "__all__"
 
-
 class LabPrescriptionSerializer(serializers.ModelSerializer):
 
     patient_name = serializers.CharField(
@@ -25,14 +24,21 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    test_name = serializers.CharField(
+        source="lab_test.name",
+        read_only=True
+    )
+
     class Meta:
         model = LabPrescription
+
         fields = [
             "id",
             "lab_request_id",
             "consultation",
             "patient",
             "patient_name",
+            "lab_test",
             "test_name",
             "clinical_reason",
             "instructions",
@@ -46,11 +52,11 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
             "id",
             "patient",
             "patient_name",
+            "test_name",
             "result",
             "created_at",
             "updated_at",
         ]
-
 class LabResultSerializer(serializers.ModelSerializer):
 
     patient_name = serializers.CharField(
@@ -64,7 +70,7 @@ class LabResultSerializer(serializers.ModelSerializer):
     )
 
     test_name = serializers.CharField(
-        source="lab_prescription.test_name",
+        source="lab_prescription.lab_test.name",
         read_only=True
     )
 
@@ -109,12 +115,13 @@ class LabBillSerializer(serializers.ModelSerializer):
     )
 
     test_name = serializers.CharField(
-        source="lab_prescription.test_name",
+        source="lab_prescription.lab_test.name",
         read_only=True
     )
 
     class Meta:
         model = LabBill
+
         fields = [
             "id",
             "bill_id",
@@ -135,5 +142,25 @@ class LabBillSerializer(serializers.ModelSerializer):
             "patient_name",
             "lab_request_id",
             "test_name",
+            "test_charge",
+            "total_amount",
             "created_at",
         ]
+
+    def validate_lab_prescription(self, lab_prescription):
+
+        # Test must be completed before billing
+        if lab_prescription.status != "COMPLETED":
+            raise serializers.ValidationError(
+                "Cannot generate bill. The laboratory test is not completed."
+            )
+
+        # Prevent duplicate bill
+        if LabBill.objects.filter(
+            lab_prescription=lab_prescription
+        ).exists():
+            raise serializers.ValidationError(
+                "A bill already exists for this laboratory prescription."
+            )
+
+        return lab_prescription
