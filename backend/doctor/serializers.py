@@ -145,7 +145,6 @@ class MedicinePrescriptionSerializer(serializers.ModelSerializer):
 # ============================================================
 # LAB PRESCRIPTION SERIALIZER
 # ============================================================
-
 class LabPrescriptionSerializer(serializers.ModelSerializer):
 
     patient_name = serializers.CharField(
@@ -158,6 +157,11 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    test_name = serializers.CharField(
+        source="lab_test.name",
+        read_only=True
+    )
+
     class Meta:
         model = LabPrescription
 
@@ -167,6 +171,7 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
             "consultation",
             "consultation_id",
             "patient_name",
+            "lab_test",
             "test_name",
             "clinical_reason",
             "instructions",
@@ -180,6 +185,7 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
             "id",
             "consultation_id",
             "patient_name",
+            "test_name",
             "created_at",
             "updated_at",
         ]

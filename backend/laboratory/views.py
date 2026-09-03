@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework import generics
@@ -5,7 +6,7 @@ from accounts.permissions import IsLabTechnician
 
 from admin_panel.models import LabTest
 from doctor.models import LabPrescription
-
+from rest_framework import generics, serializers
 from .models import LabResult, LabBill
 from .serializers import (
     LabTestSerializer,
@@ -43,7 +44,6 @@ class LabResultListCreateView(generics.ListCreateAPIView):
     """
     Lab Technician can view and create lab results.
     """
-
     permission_classes = [IsLabTechnician]
 
     queryset = LabResult.objects.select_related(
@@ -53,6 +53,7 @@ class LabResultListCreateView(generics.ListCreateAPIView):
 
     serializer_class = LabResultSerializer
 
+    @transaction.atomic
     def perform_create(self, serializer):
 
         lab_prescription = serializer.validated_data[
@@ -61,15 +62,31 @@ class LabResultListCreateView(generics.ListCreateAPIView):
 
         patient = lab_prescription.consultation.patient
 
-        serializer.save(
+        status = serializer.validated_data.get("status")
+
+        # Save the lab result
+        lab_result = serializer.save(
             patient=patient,
             completed_at=(
                 timezone.now()
-                if serializer.validated_data.get("status") == "COMPLETED"
+                if status == "COMPLETED"
                 else None
             )
         )
 
+        # If the test is completed,
+        # automatically update the prescription
+        if status == "COMPLETED":
+
+            lab_prescription.status = "COMPLETED"
+            lab_prescription.result = lab_result.result
+            lab_prescription.save(
+                update_fields=[
+                    "status",
+                    "result",
+                    "updated_at"
+                ]
+            )
 
 class LabBillListCreateView(generics.ListCreateAPIView):
     """
@@ -85,6 +102,7 @@ class LabBillListCreateView(generics.ListCreateAPIView):
 
     serializer_class = LabBillSerializer
 
+    @transaction.atomic
     def perform_create(self, serializer):
 
         lab_prescription = serializer.validated_data[
@@ -93,6 +111,23 @@ class LabBillListCreateView(generics.ListCreateAPIView):
 
         patient = lab_prescription.consultation.patient
 
+        # Find the laboratory test using prescription test name
+        try:
+            lab_test = lab_prescription.lab_test
+        except LabTest.DoesNotExist:
+            raise serializers.ValidationError(
+                f"Laboratory test '{lab_prescription.test_name}' "
+                "was not found."
+            )
+
+        # Get price from backend
+        test_charge = lab_test.price
+
+        # Currently total amount = test charge
+        total_amount = test_charge
+
         serializer.save(
-            patient=patient
+            patient=patient,
+            test_charge=test_charge,
+            total_amount=total_amount,
         )
