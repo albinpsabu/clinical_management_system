@@ -21,6 +21,7 @@ import Payment from "./pages/receptionist/Payment";
 import BillingHistory from "./pages/receptionist/BillingHistory";
 
 import "./App.css";
+import "./doctor.css";
 
 // ==================================================
 // PROTECTED ROUTE
@@ -81,13 +82,10 @@ function Unauthorized() {
 // PLACEHOLDER PAGES
 // ==================================================
 
-function DoctorDashboard() {
-    return (
-        <div>
-            <h1>Doctor Dashboard</h1>
-        </div>
-    );
-}
+import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import DoctorAppointments from "./pages/doctor/DoctorAppointments";
+import DoctorPatientProfile from "./pages/doctor/DoctorPatientProfile";
+import DoctorConsultation from "./pages/doctor/DoctorConsultation";
 
 function LaboratoryDashboard() {
     return (
@@ -280,10 +278,35 @@ function App() {
                 <Route
                     path="/doctor"
                     element={
-                        <ProtectedRoute
-                            role="DOCTOR"
-                        >
+                        <ProtectedRoute role="DOCTOR">
                             <DoctorDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/doctor/appointments"
+                    element={
+                        <ProtectedRoute role="DOCTOR">
+                            <DoctorAppointments />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/doctor/appointments/:appointmentId/patient"
+                    element={
+                        <ProtectedRoute role="DOCTOR">
+                            <DoctorPatientProfile />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/doctor/appointments/:appointmentId/consult"
+                    element={
+                        <ProtectedRoute role="DOCTOR">
+                            <DoctorConsultation />
                         </ProtectedRoute>
                     }
                 />
