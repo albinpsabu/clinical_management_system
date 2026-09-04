@@ -50,9 +50,7 @@ function ProtectedRoute({ children, role }) {
 function Unauthorized() {
     return (
         <div className="unauthorized-page">
-
             <div className="unauthorized-box">
-
                 <h2>
                     Access Denied
                 </h2>
@@ -70,9 +68,7 @@ function Unauthorized() {
                 >
                     Go to Login
                 </button>
-
             </div>
-
         </div>
     );
 }
@@ -97,13 +93,19 @@ function LaboratoryDashboard() {
     );
 }
 
-function PharmacistDashboard() {
-    return (
-        <div>
-            <h1>Pharmacist Dashboard</h1>
-        </div>
-    );
-}
+// ==================================================
+// PHARMACIST PAGES
+// ==================================================
+
+import PharmacistDashboard from "./pages/pharmacist/PharmacistDashboard";
+import Medicines from "./pages/pharmacist/Medicines";
+import PharmacistPatients from "./pages/pharmacist/Patients";
+import PatientPrescriptions from "./pages/pharmacist/PatientPrescriptions";
+import Dispense from "./pages/pharmacist/Dispense";
+import Bills from "./pages/pharmacist/Bills";
+import SalesReports from "./pages/pharmacist/SalesReports";
+
+import "./styles/pharmacist.css";
 
 // ==================================================
 // APP
@@ -307,13 +309,93 @@ function App() {
                     PHARMACIST
                 ================================================== */}
 
+                {/* ==============================================
+                    PHARMACIST DASHBOARD
+                ============================================== */}
+
                 <Route
                     path="/pharmacist"
                     element={
-                        <ProtectedRoute
-                            role="PHARMACIST"
-                        >
+                        <ProtectedRoute role="PHARMACIST">
                             <PharmacistDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ==============================================
+                    MEDICINES
+                ============================================== */}
+
+                <Route
+                    path="/pharmacist/medicines"
+                    element={
+                        <ProtectedRoute role="PHARMACIST">
+                            <Medicines />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ==============================================
+                    PATIENTS
+                ============================================== */}
+
+                <Route
+                    path="/pharmacist/patients"
+                    element={
+                        <ProtectedRoute role="PHARMACIST">
+                            <PharmacistPatients />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ==============================================
+                    PATIENT PRESCRIPTIONS
+                ============================================== */}
+
+                <Route
+                    path="/pharmacist/patients/:patientId"
+                    element={
+                        <ProtectedRoute role="PHARMACIST">
+                            <PatientPrescriptions />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ==============================================
+                    DISPENSE MEDICINE
+                ============================================== */}
+
+                <Route
+                    path="/pharmacist/dispense/:prescriptionId"
+                    element={
+                        <ProtectedRoute role="PHARMACIST">
+                            <Dispense />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ==============================================
+                    BILLS
+                ============================================== */}
+
+                <Route
+                    path="/pharmacist/bills"
+                    element={
+                        <ProtectedRoute role="PHARMACIST">
+                            <Bills />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ==============================================
+                    SALES REPORTS
+                ============================================== */}
+
+                <Route
+                    path="/pharmacist/reports"
+                    element={
+                        <ProtectedRoute role="PHARMACIST">
+                            <SalesReports />
                         </ProtectedRoute>
                     }
                 />
