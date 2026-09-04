@@ -19,6 +19,7 @@ import AppointmentCreate from "./pages/receptionist/AppointmentCreate";
 import Billing from "./pages/receptionist/Billing";
 import Payment from "./pages/receptionist/Payment";
 import BillingHistory from "./pages/receptionist/BillingHistory";
+  
 
 import "./App.css";
 
@@ -88,14 +89,11 @@ function DoctorDashboard() {
         </div>
     );
 }
+import LaboratoryDashboard from "./pages/laboratory/LabDashboard.jsx";
+import TestManagement from "./pages/laboratory/TestManagement";
+import LaboratoryBilling from "./pages/laboratory/Billing";
+import Sales from "./pages/laboratory/Sales"; 
 
-function LaboratoryDashboard() {
-    return (
-        <div>
-            <h1>Laboratory Dashboard</h1>
-        </div>
-    );
-}
 
 function PharmacistDashboard() {
     return (
@@ -298,7 +296,33 @@ function App() {
                         <ProtectedRoute
                             role="LAB_TECHNICIAN"
                         >
-                            <LaboratoryDashboard />
+                            <LaboratoryDashboard/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/laboratory/tests"
+                    element={
+                        <ProtectedRoute role="LAB_TECHNICIAN">
+                            <TestManagement />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/laboratory/billing"
+                    element={
+                        <ProtectedRoute role="LAB_TECHNICIAN">
+                            <LaboratoryBilling />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/laboratory/sales"
+                    element={
+                        <ProtectedRoute role="LAB_TECHNICIAN">
+                            <Sales />
                         </ProtectedRoute>
                     }
                 />
