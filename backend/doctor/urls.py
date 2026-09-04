@@ -33,4 +33,15 @@ urlpatterns = [
         views.LabPrescriptionListCreateView.as_view(),
         name="lab-prescriptions",
     ),
+    path(
+    "medicines/",
+    views.DoctorMedicineListView.as_view(),
+    name="doctor-medicines",
+    ),
+
+    path(
+    "lab-tests/",
+    views.DoctorLabTestListView.as_view(),
+    name="doctor-lab-tests",
+    ),
 ]

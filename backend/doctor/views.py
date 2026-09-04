@@ -4,9 +4,9 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsDoctor
 
-from admin_panel.models import Doctor
-from appointments.models import Appointment
+from admin_panel.models import Doctor, Medicine, LabTest
 from patients.models import Patient
+from appointments.models import Appointment
 
 from .models import (
     Consultation,
@@ -268,3 +268,58 @@ class LabPrescriptionListCreateView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST,
         )
+# ============================================================
+# DOCTOR - VIEW MEDICINES
+# ============================================================
+
+class DoctorMedicineListView(APIView):
+    permission_classes = [IsDoctor]
+
+    def get(self, request):
+        medicines = Medicine.objects.filter(
+            status="Active"
+        ).order_by("name")
+
+        data = []
+
+        for medicine in medicines:
+            data.append({
+                "id": medicine.id,
+                "medicine_id": medicine.medicine_id,
+                "name": medicine.name,
+                "generic_name": medicine.generic_name,
+                "medicine_type": medicine.medicine_type,
+                "manufacturer": medicine.manufacturer,
+                "stock_quantity": medicine.stock_quantity,
+                "price_per_unit": str(medicine.price_per_unit),
+                "status": medicine.status,
+            })
+
+        return Response(data)
+
+
+# ============================================================
+# DOCTOR - VIEW LAB TESTS
+# ============================================================
+
+class DoctorLabTestListView(APIView):
+    permission_classes = [IsDoctor]
+
+    def get(self, request):
+        lab_tests = LabTest.objects.filter(
+            status="Active"
+        ).order_by("name")
+
+        data = []
+
+        for test in lab_tests:
+            data.append({
+                "id": test.id,
+                "test_id": test.test_id,
+                "name": test.name,
+                "description": test.description,
+                "price": str(test.price),
+                "status": test.status,
+            })
+
+        return Response(data)
