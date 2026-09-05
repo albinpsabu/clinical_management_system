@@ -38,6 +38,7 @@ import TestManagement from "./pages/laboratory/TestManagement.jsx";
 import LaboratoryBilling from "./pages/laboratory/Billing.jsx";
 import LaboratoryLayout from "./components/laboratory/LaboratoryLayout";
 import LabTests from "./pages/laboratory/LabTests";
+import LaboratorySales from "./pages/laboratory/Sales";
 
 // ==================================================
 // PHARMACIST PAGES
@@ -88,6 +89,7 @@ function Unauthorized() {
     return (
         <div className="unauthorized-page">
             <div className="unauthorized-box">
+
                 <h2>
                     Access Denied
                 </h2>
@@ -105,6 +107,7 @@ function Unauthorized() {
                 >
                     Go to Login
                 </button>
+
             </div>
         </div>
     );
@@ -117,6 +120,7 @@ function Unauthorized() {
 function App() {
     return (
         <BrowserRouter>
+
             <Routes>
 
                 {/* ==============================================
@@ -345,6 +349,7 @@ function App() {
                         </ProtectedRoute>
                     }
                 >
+
                     {/* Laboratory Dashboard */}
                     <Route
                         index
@@ -368,6 +373,13 @@ function App() {
                         path="billing"
                         element={<LaboratoryBilling />}
                     />
+
+                    {/* Laboratory Sales */}
+                    <Route
+                        path="sales"
+                        element={<LaboratorySales />}
+                    />
+
                 </Route>
 
                 {/* ==================================================
@@ -480,6 +492,7 @@ function App() {
                 />
 
             </Routes>
+
         </BrowserRouter>
     );
 }

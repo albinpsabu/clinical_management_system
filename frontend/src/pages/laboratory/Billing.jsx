@@ -1,165 +1,330 @@
 import { useEffect, useState } from "react";
-import api from "../../services/api";
+
+import {
+    getLabBills,
+} from "../../services/laboratoryService";
+
 import "../../styles/laboratory/laboratory.css";
 
 function Billing() {
     const [bills, setBills] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const loadBills = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const response =
+                await getLabBills();
+
+            const data =
+                Array.isArray(response.data)
+                    ? response.data
+                    : response.data?.results || [];
+
+            setBills(data);
+
+        } catch (error) {
+            console.error(
+                "Error loading laboratory bills:",
+                error
+            );
+
+            setError(
+                error.response?.data?.detail ||
+                "Unable to load laboratory bills."
+            );
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const loadBills = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const response = await api.get("/laboratory/bills/");
-
-                const data = response.data;
-
-                setBills(
-                    Array.isArray(data)
-                        ? data
-                        : data.results || []
-                );
-            } catch (error) {
-                console.error("Error loading laboratory bills:", error);
-                setError("Unable to load billing data.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         loadBills();
     }, []);
+
+    // ==================================================
+    // TOTAL
+    // ==================================================
+
+    const totalAmount = bills.reduce(
+        (total, bill) =>
+            total +
+            Number(
+                bill.total_amount || 0
+            ),
+        0
+    );
+
+    // ==================================================
+    // LOADING
+    // ==================================================
 
     if (loading) {
         return (
             <div className="laboratory-page">
+
                 <div className="laboratory-content">
+
                     <div className="loading-message">
-                        Loading billing...
+                        Loading laboratory bills...
                     </div>
+
                 </div>
+
             </div>
         );
     }
 
+    // ==================================================
+    // UI
+    // ==================================================
+
     return (
         <div className="laboratory-page">
+
             <div className="laboratory-content">
 
-                {/* Page Header */}
+                {/* PAGE HEADER */}
+
                 <div className="page-header">
+
                     <div>
-                        <h1>Laboratory Billing</h1>
+
+                        <h1>
+                            Laboratory Billing
+                        </h1>
+
                         <p>
-                            View and manage laboratory bills and payments.
+                            View bills generated for
+                            completed laboratory tests.
                         </p>
+
                     </div>
+
+                    <span className="record-count">
+                        {bills.length} Bills
+                    </span>
+
                 </div>
 
-                {/* Error Message */}
+                {/* ERROR */}
+
                 {error && (
                     <div className="error-message">
                         {error}
                     </div>
                 )}
 
-                {/* Billing Card */}
+                {/* BILLING CARD */}
+
                 <div className="laboratory-card">
 
                     <div className="card-header">
+
                         <div>
-                            <h2>Laboratory Bills</h2>
+
+                            <h2>
+                                Laboratory Bills
+                            </h2>
+
                             <p>
-                                Bills generated for laboratory services
+                                Bills generated after
+                                laboratory test completion.
                             </p>
+
                         </div>
 
                         <span className="record-count">
-                            {bills.length} Bills
+                            Total ₹
+                            {totalAmount.toFixed(2)}
                         </span>
+
                     </div>
 
-                    {/* Billing Table */}
                     <div className="table-container">
+
                         <table className="laboratory-table">
 
                             <thead>
+
                                 <tr>
-                                    <th>Bill ID</th>
-                                    <th>Patient</th>
-                                    <th>Test</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
+
+                                    <th>
+                                        Bill ID
+                                    </th>
+
+                                    <th>
+                                        Patient
+                                    </th>
+
+                                    <th>
+                                        Request ID
+                                    </th>
+
+                                    <th>
+                                        Test
+                                    </th>
+
+                                    <th>
+                                        Test Charge
+                                    </th>
+
+                                    <th>
+                                        Total Amount
+                                    </th>
+
+                                    <th>
+                                        Payment Status
+                                    </th>
+
+                                    <th>
+                                        Date
+                                    </th>
+
                                 </tr>
+
                             </thead>
 
                             <tbody>
+
                                 {bills.length === 0 ? (
+
                                     <tr>
+
                                         <td
-                                            colSpan="6"
+                                            colSpan="8"
                                             className="empty-table-message"
                                         >
-                                            No laboratory bills found
+                                            No laboratory bills
+                                            found.
                                         </td>
+
                                     </tr>
+
                                 ) : (
+
                                     bills.map((bill) => (
-                                        <tr key={bill.id}>
+
+                                        <tr
+                                            key={bill.id}
+                                        >
+
+                                            {/* BILL ID */}
 
                                             <td>
+
                                                 <strong>
-                                                    {bill.id || "N/A"}
+                                                    {
+                                                        bill.bill_id
+                                                    }
                                                 </strong>
+
                                             </td>
 
-                                            <td>
-                                                {bill.patient_name || "N/A"}
-                                            </td>
+                                            {/* PATIENT */}
 
                                             <td>
-                                                {bill.test_name || "N/A"}
+                                                {
+                                                    bill.patient_name ||
+                                                    "N/A"
+                                                }
                                             </td>
 
-                                            <td>
-                                                ₹{bill.amount || "0.00"}
-                                            </td>
+                                            {/* REQUEST ID */}
 
                                             <td>
+                                                {
+                                                    bill.lab_request_id ||
+                                                    "N/A"
+                                                }
+                                            </td>
+
+                                            {/* TEST */}
+
+                                            <td>
+                                                {
+                                                    bill.test_name ||
+                                                    "N/A"
+                                                }
+                                            </td>
+
+                                            {/* TEST CHARGE */}
+
+                                            <td>
+                                                ₹
+                                                {Number(
+                                                    bill.test_charge ||
+                                                    0
+                                                ).toFixed(2)}
+                                            </td>
+
+                                            {/* TOTAL */}
+
+                                            <td>
+
+                                                <strong>
+                                                    ₹
+                                                    {Number(
+                                                        bill.total_amount ||
+                                                        0
+                                                    ).toFixed(2)}
+                                                </strong>
+
+                                            </td>
+
+                                            {/* PAYMENT STATUS */}
+
+                                            <td>
+
                                                 <span
                                                     className={`status-badge ${
-                                                        bill.status ===
+                                                        bill.payment_status ===
                                                         "PAID"
                                                             ? "status-completed"
                                                             : "status-pending"
                                                     }`}
                                                 >
-                                                    {bill.status || "PENDING"}
+                                                    {
+                                                        bill.payment_status ||
+                                                        "PENDING"
+                                                    }
                                                 </span>
+
                                             </td>
 
+                                            {/* DATE */}
+
                                             <td>
+
                                                 {bill.created_at
                                                     ? new Date(
                                                           bill.created_at
                                                       ).toLocaleDateString()
                                                     : "N/A"}
+
                                             </td>
 
                                         </tr>
+
                                     ))
+
                                 )}
+
                             </tbody>
 
                         </table>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
     );
 }

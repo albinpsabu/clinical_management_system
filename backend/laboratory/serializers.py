@@ -6,11 +6,20 @@ from doctor.models import LabPrescription
 from .models import LabResult, LabBill
 
 
+# ============================================================
+# LAB TEST
+# ============================================================
+
 class LabTestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LabTest
         fields = "__all__"
+
+
+# ============================================================
+# LAB PRESCRIPTION
+# ============================================================
 
 class LabPrescriptionSerializer(serializers.ModelSerializer):
 
@@ -57,6 +66,12 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+# ============================================================
+# LAB RESULT
+# ============================================================
+
 class LabResultSerializer(serializers.ModelSerializer):
 
     patient_name = serializers.CharField(
@@ -76,6 +91,7 @@ class LabResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LabResult
+
         fields = [
             "id",
             "result_id",
@@ -98,9 +114,45 @@ class LabResultSerializer(serializers.ModelSerializer):
             "patient_name",
             "lab_request_id",
             "test_name",
+            "completed_at",
             "created_at",
             "updated_at",
         ]
+
+    def validate_lab_prescription(self, lab_prescription):
+
+        # A valid laboratory test must be assigned.
+        if not lab_prescription.lab_test_id:
+            raise serializers.ValidationError(
+                "This laboratory prescription has no laboratory test assigned."
+            )
+
+        # Prevent duplicate results.
+        if LabResult.objects.filter(
+            lab_prescription=lab_prescription
+        ).exists():
+            raise serializers.ValidationError(
+                "A laboratory result already exists for this prescription."
+            )
+
+        # A completed prescription cannot be processed again.
+        if lab_prescription.status == "COMPLETED":
+            raise serializers.ValidationError(
+                "This laboratory prescription is already completed."
+            )
+
+        # Sample must be collected first.
+        if lab_prescription.status == "REQUESTED":
+            raise serializers.ValidationError(
+                "Sample must be collected before entering the laboratory result."
+            )
+
+        return lab_prescription
+
+
+# ============================================================
+# LAB BILL
+# ============================================================
 
 class LabBillSerializer(serializers.ModelSerializer):
 
@@ -138,29 +190,37 @@ class LabBillSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "bill_id",
             "patient",
             "patient_name",
             "lab_request_id",
             "test_name",
             "test_charge",
             "total_amount",
+            "payment_status",
             "created_at",
         ]
 
     def validate_lab_prescription(self, lab_prescription):
 
-        # Test must be completed before billing
+        # Test must be completed before billing.
         if lab_prescription.status != "COMPLETED":
             raise serializers.ValidationError(
                 "Cannot generate bill. The laboratory test is not completed."
             )
 
-        # Prevent duplicate bill
+        # A prescription can have only one bill.
         if LabBill.objects.filter(
             lab_prescription=lab_prescription
         ).exists():
             raise serializers.ValidationError(
                 "A bill already exists for this laboratory prescription."
+            )
+
+        # Test must exist.
+        if not lab_prescription.lab_test_id:
+            raise serializers.ValidationError(
+                "This laboratory prescription has no laboratory test assigned."
             )
 
         return lab_prescription

@@ -1,53 +1,76 @@
-import { NavLink, useNavigate } from "react-router-dom";
-
 import {
     LayoutDashboard,
     FlaskConical,
-    CreditCard,
+    ClipboardList,
+    Receipt,
     BarChart3,
-    LogOut
+    LogOut,
 } from "lucide-react";
+
+import {
+    NavLink,
+    useNavigate,
+} from "react-router-dom";
 
 function LaboratorySidebar() {
     const navigate = useNavigate();
 
-   const menuItems = [
-    {
-        name: "Dashboard",
-        icon: LayoutDashboard,
-        path: "/laboratory"
-    },
-    {
-        name: "Lab Tests",
-        icon: FlaskConical,
-        path: "/laboratory/tests"
-    },
-    {
-        name: "Test Management",
-        icon: FlaskConical,
-        path: "/laboratory/test-management"
-    },
-    {
-        name: "Billing",
-        icon: CreditCard,
-        path: "/laboratory/billing"
-    }
-]; 
+    const menuItems = [
+        {
+            name: "Dashboard",
+            path: "/laboratory",
+            icon: LayoutDashboard,
+            end: true,
+        },
+        {
+            name: "Lab Tests",
+            path: "/laboratory/tests",
+            icon: FlaskConical,
+        },
+        {
+            name: "Test Management",
+            path: "/laboratory/test-management",
+            icon: ClipboardList,
+        },
+        {
+            name: "Billing",
+            path: "/laboratory/billing",
+            icon: Receipt,
+        },
+        {
+            name: "Sales",
+            path: "/laboratory/sales",
+            icon: BarChart3,
+        },
+    ];
 
     const handleLogout = () => {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("role");
-        navigate("/login");
+        localStorage.clear();
+
+        navigate("/login", {
+            replace: true,
+        });
     };
 
     return (
         <aside className="laboratory-sidebar">
 
-            <div className="sidebar-title">
-                LABORATORY
+            <div className="sidebar-brand">
+                <FlaskConical size={22} />
+
+                <div>
+                    <strong>
+                        CLINIC
+                    </strong>
+
+                    <span>
+                        LABORATORY
+                    </span>
+                </div>
             </div>
 
             <nav className="sidebar-menu">
+
                 {menuItems.map((item) => {
                     const Icon = item.icon;
 
@@ -55,14 +78,16 @@ function LaboratorySidebar() {
                         <NavLink
                             key={item.path}
                             to={item.path}
+                            end={item.end}
                             className={({ isActive }) =>
-                                `sidebar-item ${isActive ? "active" : ""}`
+                                `sidebar-item ${
+                                    isActive
+                                        ? "active"
+                                        : ""
+                                }`
                             }
                         >
-                            <Icon
-                                size={19}
-                                strokeWidth={1.8}
-                            />
+                            <Icon size={18} />
 
                             <span>
                                 {item.name}
@@ -70,16 +95,15 @@ function LaboratorySidebar() {
                         </NavLink>
                     );
                 })}
+
             </nav>
 
             <button
-                className="sidebar-item logout-item"
+                type="button"
+                className="sidebar-logout"
                 onClick={handleLogout}
             >
-                <LogOut
-                    size={19}
-                    strokeWidth={1.8}
-                />
+                <LogOut size={18} />
 
                 <span>
                     Logout

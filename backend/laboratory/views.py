@@ -1,12 +1,14 @@
 from django.db import transaction
 from django.utils import timezone
 
-from rest_framework import generics
-from accounts.permissions import IsLabTechnician
+from rest_framework import generics, serializers, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from accounts.permissions import IsLabTechnician
 from admin_panel.models import LabTest
 from doctor.models import LabPrescription
-from rest_framework import generics, serializers
+
 from .models import LabResult, LabBill
 from .serializers import (
     LabTestSerializer,
@@ -16,118 +18,510 @@ from .serializers import (
 )
 
 
-class LabTestListView(generics.ListAPIView):
-    """
-    Lab Technician can view lab tests
-    created by the Administrator.
-    """
+# =========================================================
+# LAB TESTS
+# =========================================================
 
+class LabTestListView(generics.ListAPIView):
     permission_classes = [IsLabTechnician]
 
-    queryset = LabTest.objects.all().order_by("id")
+    queryset = (
+        LabTest.objects
+        .all()
+        .order_by("id")
+    )
+
     serializer_class = LabTestSerializer
 
 
-class LabPrescriptionListView(generics.ListAPIView):
-    """
-    Lab Technician can view lab prescriptions
-    raised by Doctors.
-    """
+# =========================================================
+# LAB PRESCRIPTIONS
+# =========================================================
 
+class LabPrescriptionListView(generics.ListAPIView):
     permission_classes = [IsLabTechnician]
 
-    queryset = LabPrescription.objects.all().order_by("-created_at")
+    queryset = (
+        LabPrescription.objects
+        .select_related(
+            "consultation",
+            "consultation__patient",
+            "lab_test",
+        )
+        .all()
+        .order_by("-created_at")
+    )
+
     serializer_class = LabPrescriptionSerializer
 
 
-class LabResultListCreateView(generics.ListCreateAPIView):
-    """
-    Lab Technician can view and create lab results.
-    """
+# =========================================================
+# SAMPLE COLLECTION
+# =========================================================
+
+class LabPrescriptionSampleCollectionView(APIView):
     permission_classes = [IsLabTechnician]
 
-    queryset = LabResult.objects.select_related(
-        "patient",
-        "lab_prescription"
-    ).all().order_by("-created_at")
+    @transaction.atomic
+    def patch(self, request, prescription_id):
+
+        try:
+            prescription = (
+                LabPrescription.objects
+                .select_for_update()
+                .select_related(
+                    "consultation",
+                    "consultation__patient",
+                    "lab_test",
+                )
+                .get(id=prescription_id)
+            )
+
+        except LabPrescription.DoesNotExist:
+
+            return Response(
+                {
+                    "detail":
+                        "Laboratory prescription not found."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Already completed
+        if prescription.status == "COMPLETED":
+
+            return Response(
+                {
+                    "detail":
+                        "This laboratory test is already completed."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Already collected
+        if prescription.status == "SAMPLE_COLLECTED":
+
+            return Response(
+                {
+                    "detail":
+                        "Sample has already been collected."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Lab test missing
+        if not prescription.lab_test_id:
+
+            return Response(
+                {
+                    "detail":
+                        "This laboratory prescription has no laboratory test assigned."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        prescription.status = "SAMPLE_COLLECTED"
+
+        prescription.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        return Response(
+            {
+                "message":
+                    "Sample collected successfully.",
+
+                "status":
+                    prescription.status,
+
+                "prescription":
+                    LabPrescriptionSerializer(
+                        prescription
+                    ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# =========================================================
+# LAB RESULTS
+# =========================================================
+
+class LabResultListCreateView(
+    generics.ListCreateAPIView
+):
+
+    permission_classes = [IsLabTechnician]
+
+    queryset = (
+        LabResult.objects
+        .select_related(
+            "patient",
+            "lab_prescription",
+            "lab_prescription__lab_test",
+        )
+        .all()
+        .order_by("-created_at")
+    )
 
     serializer_class = LabResultSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
 
-        lab_prescription = serializer.validated_data[
-            "lab_prescription"
-        ]
+        prescription_id = (
+            serializer.validated_data[
+                "lab_prescription"
+            ].id
+        )
 
-        patient = lab_prescription.consultation.patient
+        try:
 
-        status = serializer.validated_data.get("status")
+            lab_prescription = (
+                LabPrescription.objects
+                .select_for_update()
+                .select_related(
+                    "consultation",
+                    "consultation__patient",
+                    "lab_test",
+                )
+                .get(id=prescription_id)
+            )
 
-        # Save the lab result
-        lab_result = serializer.save(
-            patient=patient,
-            completed_at=(
-                timezone.now()
-                if status == "COMPLETED"
-                else None
+        except LabPrescription.DoesNotExist:
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "Laboratory prescription not found."
+                }
+            )
+
+        # -------------------------------------------------
+        # Lab test must exist
+        # -------------------------------------------------
+
+        if not lab_prescription.lab_test_id:
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "This laboratory prescription has no laboratory test assigned."
+                }
+            )
+
+        # -------------------------------------------------
+        # Prevent duplicate result
+        # -------------------------------------------------
+
+        if LabResult.objects.filter(
+            lab_prescription=lab_prescription
+        ).exists():
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "A laboratory result already exists for this prescription."
+                }
+            )
+
+        # -------------------------------------------------
+        # Sample must be collected first
+        # -------------------------------------------------
+
+        if lab_prescription.status == "REQUESTED":
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "Sample must be collected before entering the laboratory result."
+                }
+            )
+
+        # -------------------------------------------------
+        # Already completed
+        # -------------------------------------------------
+
+        if lab_prescription.status == "COMPLETED":
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "This laboratory test is already completed."
+                }
+            )
+
+        patient = (
+            lab_prescription
+            .consultation
+            .patient
+        )
+
+        result_status = (
+            serializer.validated_data.get(
+                "status",
+                "COMPLETED",
             )
         )
 
-        # If the test is completed,
-        # automatically update the prescription
-        if status == "COMPLETED":
+        if result_status not in [
+            "IN_PROGRESS",
+            "COMPLETED",
+        ]:
+
+            raise serializers.ValidationError(
+                {
+                    "status":
+                        "Invalid laboratory result status."
+                }
+            )
+
+        completed_at = (
+            timezone.now()
+            if result_status == "COMPLETED"
+            else None
+        )
+
+        # -------------------------------------------------
+        # Save result
+        # -------------------------------------------------
+
+        lab_result = serializer.save(
+            patient=patient,
+            completed_at=completed_at,
+        )
+
+        # -------------------------------------------------
+        # Complete prescription
+        # -------------------------------------------------
+
+        if result_status == "COMPLETED":
 
             lab_prescription.status = "COMPLETED"
-            lab_prescription.result = lab_result.result
+
+            lab_prescription.result = (
+                lab_result.result
+            )
+
             lab_prescription.save(
                 update_fields=[
                     "status",
                     "result",
-                    "updated_at"
+                    "updated_at",
                 ]
             )
 
-class LabBillListCreateView(generics.ListCreateAPIView):
-    """
-    Lab Technician can view and create lab bills.
-    """
+        else:
+
+            if lab_prescription.status == "REQUESTED":
+
+                lab_prescription.status = (
+                    "SAMPLE_COLLECTED"
+                )
+
+                lab_prescription.save(
+                    update_fields=[
+                        "status",
+                        "updated_at",
+                    ]
+                )
+
+
+# =========================================================
+# LAB BILLING
+# =========================================================
+
+class LabBillListCreateView(
+    generics.ListCreateAPIView
+):
 
     permission_classes = [IsLabTechnician]
 
-    queryset = LabBill.objects.select_related(
-        "patient",
-        "lab_prescription"
-    ).all().order_by("-created_at")
+    queryset = (
+        LabBill.objects
+        .select_related(
+            "patient",
+            "lab_prescription",
+            "lab_prescription__lab_test",
+        )
+        .all()
+        .order_by("-created_at")
+    )
 
     serializer_class = LabBillSerializer
 
     @transaction.atomic
     def perform_create(self, serializer):
 
-        lab_prescription = serializer.validated_data[
-            "lab_prescription"
-        ]
+        prescription_id = (
+            serializer.validated_data[
+                "lab_prescription"
+            ].id
+        )
 
-        patient = lab_prescription.consultation.patient
+        # -------------------------------------------------
+        # Lock prescription
+        # -------------------------------------------------
 
-        # Find the laboratory test using prescription test name
         try:
-            lab_test = lab_prescription.lab_test
-        except LabTest.DoesNotExist:
-            raise serializers.ValidationError(
-                f"Laboratory test '{lab_prescription.test_name}' "
-                "was not found."
+
+            lab_prescription = (
+                LabPrescription.objects
+                .select_for_update()
+                .select_related(
+                    "consultation",
+                    "consultation__patient",
+                    "lab_test",
+                )
+                .get(id=prescription_id)
             )
 
-        # Get price from backend
+        except LabPrescription.DoesNotExist:
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "Laboratory prescription not found."
+                }
+            )
+
+        # -------------------------------------------------
+        # Test must be completed
+        # -------------------------------------------------
+
+        if lab_prescription.status != "COMPLETED":
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "Cannot generate bill. The laboratory test is not completed."
+                }
+            )
+
+        # -------------------------------------------------
+        # Result must exist
+        # -------------------------------------------------
+
+        if not LabResult.objects.filter(
+            lab_prescription=lab_prescription
+        ).exists():
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "Cannot generate bill. Laboratory result not found."
+                }
+            )
+
+        # -------------------------------------------------
+        # Prevent duplicate bill
+        # -------------------------------------------------
+
+        if LabBill.objects.filter(
+            lab_prescription=lab_prescription
+        ).exists():
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "A bill already exists for this laboratory prescription."
+                }
+            )
+
+        # -------------------------------------------------
+        # Lab test must exist
+        # -------------------------------------------------
+
+        if not lab_prescription.lab_test_id:
+
+            raise serializers.ValidationError(
+                {
+                    "lab_prescription":
+                        "This laboratory prescription has no laboratory test assigned."
+                }
+            )
+
+        patient = (
+            lab_prescription
+            .consultation
+            .patient
+        )
+
+        lab_test = lab_prescription.lab_test
+
+        # -------------------------------------------------
+        # Calculate charge
+        # -------------------------------------------------
+
         test_charge = lab_test.price
 
-        # Currently total amount = test charge
         total_amount = test_charge
 
+        # -------------------------------------------------
+        # IMPORTANT:
+        # Generate BILL ID here
+        # -------------------------------------------------
+
+        bill_id = (
+            "LB"
+            + timezone.now()
+            .strftime("%Y%m%d%H%M%S")
+            + str(lab_prescription.id)
+        )
+
+        # -------------------------------------------------
+        # Make sure bill ID is unique
+        # -------------------------------------------------
+
+        original_bill_id = bill_id
+
+        counter = 1
+
+        while LabBill.objects.filter(
+            bill_id=bill_id
+        ).exists():
+
+            bill_id = (
+                f"{original_bill_id}{counter}"
+            )
+
+            counter += 1
+
+        # -------------------------------------------------
+        # CREATE BILL
+        # -------------------------------------------------
+
         serializer.save(
+            bill_id=bill_id,
             patient=patient,
             test_charge=test_charge,
             total_amount=total_amount,
+            payment_status="PENDING",
         )
+
+
+# =========================================================
+# LAB SALES
+# =========================================================
+
+class LabSalesListView(
+    generics.ListAPIView
+):
+
+    permission_classes = [IsLabTechnician]
+
+    queryset = (
+        LabBill.objects
+        .select_related(
+            "patient",
+            "lab_prescription",
+            "lab_prescription__lab_test",
+        )
+        .all()
+        .order_by("-created_at")
+    )
+
+    serializer_class = LabBillSerializer

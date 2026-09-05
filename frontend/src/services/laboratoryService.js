@@ -1,31 +1,51 @@
 import api from "./api";
 
-// Get laboratory prescriptions
-export const getLabPrescriptions = async () => {
-    const response = await api.get("/laboratory/prescriptions/");
-    return response.data;
-};
-export const getLabTests = async () => {
-    const response = await api.get("/laboratory/tests/");
-    return response.data;
-};
+// ==================================================
+// LAB TESTS
+// ==================================================
 
-// Get laboratory results
-export const getLabResults = async () => {
-    const response = await api.get("/laboratory/results/");
-    return response.data;
-};
+export const getLabTests = () =>
+    api.get("/laboratory/tests/");
 
-// Get laboratory bills
-export const getLabBills = async () => {
-    const response = await api.get("/laboratory/bills/");
-    return response.data;
-};
+// ==================================================
+// LAB PRESCRIPTIONS
+// ==================================================
 
-export const saveLabResult = async (resultData) => {
-    const response = await api.post(
-        "/laboratory/results/",
-        resultData
+export const getLabPrescriptions = () =>
+    api.get("/laboratory/prescriptions/");
+
+// ==================================================
+// SAMPLE COLLECTION
+// ==================================================
+
+export const collectSample = (prescriptionId) =>
+    api.patch(
+        `/laboratory/prescriptions/${prescriptionId}/collect-sample/`
     );
-    return response.data;
-};
+
+// ==================================================
+// LAB RESULTS
+// ==================================================
+
+export const getLabResults = () =>
+    api.get("/laboratory/results/");
+
+export const saveLabResult = (data) =>
+    api.post("/laboratory/results/", data);
+
+// ==================================================
+// LAB BILLING
+// ==================================================
+
+export const getLabBills = () =>
+    api.get("/laboratory/bills/");
+
+export const createLabBill = (data) =>
+    api.post("/laboratory/bills/", data);
+
+// ==================================================
+// LAB SALES
+// ==================================================
+
+export const getLabSales = () =>
+    api.get("/laboratory/sales/");

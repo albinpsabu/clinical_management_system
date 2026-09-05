@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { getLabTests } from "../../services/laboratoryService";
-import "../../styles/laboratory/laboratory.css";
+
+import {
+    getLabTests,
+} from "../../services/laboratoryService";
 
 function LabTests() {
     const [tests, setTests] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [search, setSearch] = useState("");
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -12,7 +15,6 @@ function LabTests() {
         const loadTests = async () => {
             try {
                 setLoading(true);
-                setError("");
 
                 const data = await getLabTests();
 
@@ -21,9 +23,15 @@ function LabTests() {
                         ? data
                         : data.results || []
                 );
+
             } catch (error) {
-                console.error("Error loading laboratory tests:", error);
-                setError("Unable to load laboratory tests.");
+                console.error(error);
+
+                setError(
+                    error.response?.data?.detail ||
+                    "Unable to load laboratory tests."
+                );
+
             } finally {
                 setLoading(false);
             }
@@ -32,23 +40,27 @@ function LabTests() {
         loadTests();
     }, []);
 
-    const filteredTests = tests.filter((test) => {
-        const search = searchTerm.toLowerCase();
+    const searchValue =
+        search.trim().toLowerCase();
 
-        return (
-            test.test_id?.toLowerCase().includes(search) ||
-            test.name?.toLowerCase().includes(search) ||
-            test.description?.toLowerCase().includes(search)
-        );
-    });
+    const filteredTests = tests.filter(
+        (test) =>
+            test.test_id
+                ?.toLowerCase()
+                .includes(searchValue) ||
+            test.name
+                ?.toLowerCase()
+                .includes(searchValue) ||
+            test.description
+                ?.toLowerCase()
+                .includes(searchValue)
+    );
 
     if (loading) {
         return (
             <div className="laboratory-page">
-                <div className="laboratory-content">
-                    <div className="loading-message">
-                        Loading laboratory tests...
-                    </div>
+                <div className="loading-state">
+                    Loading laboratory tests...
                 </div>
             </div>
         );
@@ -56,124 +68,158 @@ function LabTests() {
 
     return (
         <div className="laboratory-page">
-            <div className="laboratory-content">
 
-                {/* Page Header */}
-                <div className="page-header">
-                    <div>
-                        <h1>Lab Tests</h1>
-                        <p>
-                            View laboratory tests available in the system.
-                        </p>
-                    </div>
+            <div className="page-header">
+
+                <div>
+                    <h1>
+                        Lab Tests
+                    </h1>
+
+                    <p>
+                        View available laboratory tests
+                        and their charges.
+                    </p>
                 </div>
 
-                {/* Error Message */}
-                {error && (
-                    <div className="error-message">
-                        {error}
-                    </div>
-                )}
+            </div>
 
-                {/* Tests Card */}
-                <div className="laboratory-card">
+            {error && (
+                <div className="alert alert-error">
+                    {error}
+                </div>
+            )}
 
-                    <div className="card-header">
-                        <div>
-                            <h2>Available Laboratory Tests</h2>
-                            <p>
-                                Tests entered by the administrator
-                            </p>
-                        </div>
+            <div className="content-card">
 
-                        <span className="record-count">
-                            {filteredTests.length} Tests
-                        </span>
-                    </div>
+                <div className="card-header">
 
-                    {/* Search */}
-                    <div className="search-container">
-                        <input
-                            type="text"
-                            className="search-input"
-                            placeholder="Search laboratory tests..."
-                            value={searchTerm}
-                            onChange={(e) =>
-                                setSearchTerm(e.target.value)
-                            }
-                        />
+                    <div>
+                        <h2>
+                            Available Tests
+                        </h2>
+
+                        <p>
+                            Laboratory tests configured
+                            by the administrator.
+                        </p>
                     </div>
 
-                    {/* Table */}
-                    <div className="table-container">
-                        <table className="laboratory-table">
+                    <span className="record-count">
+                        {filteredTests.length} Tests
+                    </span>
 
-                            <thead>
+                </div>
+
+                <div className="search-wrapper">
+
+                    <input
+                        type="text"
+                        className="search-input"
+                        placeholder="Search tests..."
+                        value={search}
+                        onChange={(event) =>
+                            setSearch(
+                                event.target.value
+                            )
+                        }
+                    />
+
+                </div>
+
+                <div className="table-container">
+
+                    <table className="laboratory-table">
+
+                        <thead>
+                            <tr>
+                                <th>Test ID</th>
+                                <th>Test Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {filteredTests.length === 0 ? (
+
                                 <tr>
-                                    <th>Test ID</th>
-                                    <th>Test Name</th>
-                                    <th>Description</th>
-                                    <th>Price</th>
-                                    <th>Status</th>
+                                    <td
+                                        colSpan="5"
+                                        className="empty-state"
+                                    >
+                                        No laboratory tests found.
+                                    </td>
                                 </tr>
-                            </thead>
 
-                            <tbody>
-                                {filteredTests.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan="5"
-                                            className="empty-table-message"
-                                        >
-                                            {searchTerm
-                                                ? "No laboratory tests match your search."
-                                                : "No laboratory tests found."}
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredTests.map((test) => (
+                            ) : (
+
+                                filteredTests.map(
+                                    (test) => (
+
                                         <tr key={test.id}>
 
                                             <td>
+                                                <span className="request-id">
+                                                    {
+                                                        test.test_id
+                                                    }
+                                                </span>
+                                            </td>
+
+                                            <td>
                                                 <strong>
-                                                    {test.test_id}
+                                                    {test.name}
                                                 </strong>
                                             </td>
 
                                             <td>
-                                                {test.name}
+                                                {
+                                                    test.description ||
+                                                    "—"
+                                                }
                                             </td>
 
                                             <td>
-                                                {test.description || "N/A"}
-                                            </td>
-
-                                            <td>
-                                                ₹{test.price}
+                                                ₹
+                                                {Number(
+                                                    test.price || 0
+                                                ).toFixed(2)}
                                             </td>
 
                                             <td>
                                                 <span
-                                                    className={`status-badge ${
-                                                        test.status === "Active"
-                                                            ? "status-completed"
-                                                            : "status-pending"
+                                                    className={`status ${
+                                                        test.status ===
+                                                        "Active"
+                                                            ? "completed"
+                                                            : "pending"
                                                     }`}
                                                 >
-                                                    {test.status}
+                                                    {
+                                                        test.status ||
+                                                        "Active"
+                                                    }
                                                 </span>
                                             </td>
 
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
 
-                        </table>
-                    </div>
+                                    )
+                                )
+
+                            )}
+
+                        </tbody>
+
+                    </table>
 
                 </div>
+
             </div>
+
         </div>
     );
 }

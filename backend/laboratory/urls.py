@@ -3,17 +3,28 @@ from django.urls import path
 from .views import (
     LabTestListView,
     LabPrescriptionListView,
+    LabPrescriptionSampleCollectionView,
     LabResultListCreateView,
     LabBillListCreateView,
+    LabSalesListView,
 )
 
 
 urlpatterns = [
+
+    # ========================================================
+    # LAB TESTS
+    # ========================================================
+
     path(
         "tests/",
         LabTestListView.as_view(),
         name="lab-tests"
     ),
+
+    # ========================================================
+    # LAB PRESCRIPTIONS
+    # ========================================================
 
     path(
         "prescriptions/",
@@ -21,15 +32,43 @@ urlpatterns = [
         name="lab-prescriptions"
     ),
 
+    # ========================================================
+    # SAMPLE COLLECTION
+    # ========================================================
+
+    path(
+        "prescriptions/<int:prescription_id>/collect-sample/",
+        LabPrescriptionSampleCollectionView.as_view(),
+        name="lab-prescription-collect-sample"
+    ),
+
+    # ========================================================
+    # LAB RESULTS
+    # ========================================================
+
     path(
         "results/",
         LabResultListCreateView.as_view(),
         name="lab-results"
     ),
 
+    # ========================================================
+    # LAB BILLING
+    # ========================================================
+
     path(
         "bills/",
         LabBillListCreateView.as_view(),
         name="lab-bills"
+    ),
+
+    # ========================================================
+    # LAB SALES
+    # ========================================================
+
+    path(
+        "sales/",
+        LabSalesListView.as_view(),
+        name="lab-sales"
     ),
 ]

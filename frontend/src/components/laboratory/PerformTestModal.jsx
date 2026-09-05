@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-function PerformTestModal({ prescription, onClose, onSave }) {
-
+function PerformTestModal({
+    prescription,
+    onSave,
+    onClose,
+}) {
     const [result, setResult] = useState("");
     const [remarks, setRemarks] = useState("");
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        setError("");
+
         if (!result.trim()) {
-            alert("Please enter the test result.");
+            setError(
+                "Please enter the laboratory result."
+            );
             return;
         }
 
@@ -22,6 +30,12 @@ function PerformTestModal({ prescription, onClose, onSave }) {
                 remarks: remarks.trim(),
             });
 
+        } catch (error) {
+            console.error(
+                "Result submission error:",
+                error
+            );
+
         } finally {
             setSaving(false);
         }
@@ -30,104 +44,176 @@ function PerformTestModal({ prescription, onClose, onSave }) {
     return (
         <div className="modal-overlay">
 
-            <div className="perform-test-modal">
+            <div className="modal-content">
+
+                {/* HEADER */}
 
                 <div className="modal-header">
+
                     <div>
-                        <h2>Perform Laboratory Test</h2>
+
+                        <h2>
+                            Perform Laboratory Test
+                        </h2>
+
                         <p>
-                            Enter the result for the prescribed test.
+                            Enter the result for the
+                            prescribed laboratory test.
                         </p>
+
                     </div>
 
                     <button
+                        type="button"
                         className="modal-close"
                         onClick={onClose}
+                        disabled={saving}
                     >
                         ×
                     </button>
-                </div>
-
-                <div className="test-information">
-
-                    <div>
-                        <label>Request ID</label>
-                        <p>
-                            {prescription.lab_request_id}
-                        </p>
-                    </div>
-
-                    <div>
-                        <label>Patient</label>
-                        <p>
-                            {prescription.patient_name || "N/A"}
-                        </p>
-                    </div>
-
-                    <div>
-                        <label>Test</label>
-                        <p>
-                            {prescription.test_name || "N/A"}
-                        </p>
-                    </div>
 
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                {/* TEST INFORMATION */}
 
-                    <div className="form-group">
+                <div className="result-info-grid">
 
-                        <label>
-                            Test Result
-                            <span className="required">*</span>
-                        </label>
+                    <div className="result-info-item">
+
+                        <span className="result-label">
+                            Patient
+                        </span>
+
+                        <span className="result-value">
+                            {
+                                prescription?.patient_name ||
+                                "N/A"
+                            }
+                        </span>
+
+                    </div>
+
+                    <div className="result-info-item">
+
+                        <span className="result-label">
+                            Test
+                        </span>
+
+                        <span className="result-value">
+                            {
+                                prescription?.test_name ||
+                                "N/A"
+                            }
+                        </span>
+
+                    </div>
+
+                    <div className="result-info-item">
+
+                        <span className="result-label">
+                            Request ID
+                        </span>
+
+                        <span className="result-value">
+                            {
+                                prescription?.lab_request_id ||
+                                "N/A"
+                            }
+                        </span>
+
+                    </div>
+
+                    <div className="result-info-item">
+
+                        <span className="result-label">
+                            Status
+                        </span>
+
+                        <span className="result-value">
+
+                            <span className="status-badge status-pending">
+                                SAMPLE COLLECTED
+                            </span>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                {/* FORM */}
+
+                <form
+                    onSubmit={handleSubmit}
+                >
+
+                    <div className="result-section">
+
+                        <h3>
+                            Result
+                        </h3>
 
                         <textarea
                             value={result}
                             onChange={(e) =>
-                                setResult(e.target.value)
+                                setResult(
+                                    e.target.value
+                                )
                             }
                             placeholder="Enter laboratory test result..."
-                            rows="5"
+                            rows={6}
+                            disabled={saving}
                         />
 
                     </div>
 
-                    <div className="form-group">
+                    <div className="result-section">
 
-                        <label>
+                        <h3>
                             Remarks
-                        </label>
+                        </h3>
 
                         <textarea
                             value={remarks}
                             onChange={(e) =>
-                                setRemarks(e.target.value)
+                                setRemarks(
+                                    e.target.value
+                                )
                             }
-                            placeholder="Enter additional remarks..."
-                            rows="4"
+                            placeholder="Enter remarks if required..."
+                            rows={4}
+                            disabled={saving}
                         />
 
                     </div>
 
-                    <div className="modal-actions">
+                    {error && (
+                        <div className="error-message">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* FOOTER */}
+
+                    <div className="modal-footer">
 
                         <button
                             type="button"
-                            className="cancel-btn"
+                            className="secondary-button"
                             onClick={onClose}
+                            disabled={saving}
                         >
                             Cancel
                         </button>
 
                         <button
                             type="submit"
-                            className="save-result-btn"
+                            className="perform-test-btn"
                             disabled={saving}
                         >
                             {saving
                                 ? "Saving..."
-                                : "Save Result"}
+                                : "Complete Test"}
                         </button>
 
                     </div>

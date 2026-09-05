@@ -1,521 +1,298 @@
 import { useEffect, useState } from "react";
 
 import {
-    FlaskConical,
-    Clock3,
-    CheckCircle2,
-    CreditCard
-} from "lucide-react";
-
-import "../../styles/laboratory/laboratory.css";
-
-import {
     getLabPrescriptions,
-    getLabResults,
-    getLabBills
+    getLabBills,
 } from "../../services/laboratoryService";
 
-
 function LabDashboard() {
+    const [prescriptions, setPrescriptions] =
+        useState([]);
 
-    // -----------------------------
-    // State variables
-    // -----------------------------
+    const [bills, setBills] =
+        useState([]);
 
-    const [prescriptions, setPrescriptions] = useState([]);
-    const [results, setResults] = useState([]);
-    const [bills, setBills] = useState([]);
+    const [loading, setLoading] =
+        useState(true);
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
-
-    // -----------------------------
-    // Get data from Django API
-    // -----------------------------
+    const [error, setError] =
+        useState("");
 
     useEffect(() => {
-
-        const loadDashboardData = async () => {
-
+        const loadDashboard = async () => {
             try {
-
-                setLoading(true);
-                setError("");
-
                 const [
                     prescriptionData,
-                    resultData,
-                    billData
+                    billData,
                 ] = await Promise.all([
                     getLabPrescriptions(),
-                    getLabResults(),
-                    getLabBills()
+                    getLabBills(),
                 ]);
 
-
-                // Handle normal array or DRF pagination
-
                 setPrescriptions(
-                    prescriptionData.results || prescriptionData
-                );
-
-                setResults(
-                    resultData.results || resultData
+                    Array.isArray(prescriptionData)
+                        ? prescriptionData
+                        : prescriptionData.results || []
                 );
 
                 setBills(
-                    billData.results || billData
+                    Array.isArray(billData)
+                        ? billData
+                        : billData.results || []
                 );
-
 
             } catch (error) {
-
-                console.error(
-                    "Dashboard data error:",
-                    error
-                );
+                console.error(error);
 
                 setError(
-                    "Unable to load laboratory dashboard data."
+                    error.response?.data?.detail ||
+                    "Unable to load dashboard."
                 );
 
-
             } finally {
-
                 setLoading(false);
-
             }
-
         };
 
-
-        loadDashboardData();
-
+        loadDashboard();
     }, []);
 
+    const requested =
+        prescriptions.filter(
+            (item) =>
+                item.status === "REQUESTED"
+        ).length;
 
-    // -----------------------------
-    // Dashboard calculations
-    // -----------------------------
+    const sampleCollected =
+        prescriptions.filter(
+            (item) =>
+                item.status === "SAMPLE_COLLECTED"
+        ).length;
 
-    // Total laboratory test requests
-    const totalTests = prescriptions.length;
+    const completed =
+        prescriptions.filter(
+            (item) =>
+                item.status === "COMPLETED"
+        ).length;
 
+    const pendingBills =
+        bills.filter(
+            (bill) =>
+                bill.payment_status === "PENDING"
+        ).length;
 
-    // Pending tests
-    const pendingTests = prescriptions.filter(
-        (test) =>
-            test.status !== "COMPLETED"
-    ).length;
-
-
-    // Completed tests
-    const completedTests = results.filter(
-        (result) =>
-            result.status === "COMPLETED"
-    ).length;
-
-
-    // Today's date
-    const today = new Date()
-        .toISOString()
-        .split("T")[0];
-
-
-    // Today's bills
-    const todaysBills = bills.filter(
-        (bill) =>
-            bill.created_at &&
-            bill.created_at.startsWith(today)
-    );
-
-
-    // Today's bill amount
-    const todaysBillAmount = todaysBills.reduce(
-        (total, bill) =>
-            total + Number(bill.total_amount || 0),
-        0
-    );
-
-
-    // Latest 5 tests
-    const recentTests = prescriptions.slice(0, 5);
-
-
-    // -----------------------------
-    // Loading screen
-    // -----------------------------
+    const totalRevenue =
+        bills.reduce(
+            (sum, bill) =>
+                sum +
+                Number(
+                    bill.total_amount || 0
+                ),
+            0
+        );
 
     if (loading) {
-
         return (
-            <div className="lab-dashboard">
+            <div className="laboratory-page">
+                <div className="loading-state">
+                    Loading dashboard...
+                </div>
+            </div>
+        );
+    }
 
-                <div className="page-heading">
+    return (
+        <div className="laboratory-page">
 
+            <div className="page-header">
+
+                <div>
                     <h1>
                         Laboratory Dashboard
                     </h1>
 
                     <p>
-                        Loading laboratory data...
+                        Overview of laboratory operations.
                     </p>
-
                 </div>
 
             </div>
-        );
-
-    }
-
-
-    // -----------------------------
-    // Dashboard
-    // -----------------------------
-
-    return (
-
-        <div className="lab-dashboard">
-
-
-            {/* ==========================
-                PAGE HEADING
-            ========================== */}
-
-            <div className="page-heading">
-
-                <h1>
-                    Laboratory Dashboard
-                </h1>
-
-                <p>
-                    Overview of today's laboratory activity
-                </p>
-
-            </div>
-
-
-            {/* ==========================
-                ERROR MESSAGE
-            ========================== */}
 
             {error && (
-
-                <div className="error-message">
-
+                <div className="alert alert-error">
                     {error}
-
                 </div>
-
             )}
-
-
-            {/* ==========================
-                STATISTICS CARDS
-            ========================== */}
 
             <div className="stats-grid">
 
-
-                {/* Total Tests */}
-
                 <div className="stat-card">
-
                     <div className="stat-icon blue">
-
-                        <FlaskConical size={23} />
-
+                        LAB
                     </div>
-
 
                     <div className="stat-content">
-
-                        <span className="stat-title">
-                            Total Tests
+                        <span>
+                            Requested
                         </span>
-
 
                         <strong>
-                            {totalTests}
+                            {requested}
                         </strong>
-
-
-                        <span className="stat-description">
-                            Laboratory tests
-                        </span>
-
                     </div>
-
                 </div>
 
-
-
-                {/* Pending Tests */}
-
                 <div className="stat-card">
-
                     <div className="stat-icon orange">
-
-                        <Clock3 size={23} />
-
+                        SMP
                     </div>
-
 
                     <div className="stat-content">
-
-                        <span className="stat-title">
-                            Pending Tests
+                        <span>
+                            Sample Collected
                         </span>
-
 
                         <strong>
-                            {pendingTests}
+                            {sampleCollected}
                         </strong>
-
-
-                        <span className="stat-description">
-                            Awaiting completion
-                        </span>
-
                     </div>
-
                 </div>
 
-
-
-                {/* Completed Tests */}
-
                 <div className="stat-card">
-
                     <div className="stat-icon green">
-
-                        <CheckCircle2 size={23} />
-
+                        ✓
                     </div>
-
 
                     <div className="stat-content">
-
-                        <span className="stat-title">
-                            Completed Tests
+                        <span>
+                            Completed
                         </span>
-
 
                         <strong>
-                            {completedTests}
+                            {completed}
                         </strong>
-
-
-                        <span className="stat-description">
-                            Completed tests
-                        </span>
-
                     </div>
-
                 </div>
 
-
-
-                {/* Today's Bills */}
-
                 <div className="stat-card">
-
                     <div className="stat-icon purple">
-
-                        <CreditCard size={23} />
-
+                        ₹
                     </div>
-
 
                     <div className="stat-content">
-
-                        <span className="stat-title">
-                            Today's Bills
+                        <span>
+                            Total Billing
                         </span>
-
 
                         <strong>
-                            ₹{todaysBillAmount.toFixed(2)}
+                            ₹{totalRevenue.toFixed(2)}
                         </strong>
-
-
-                        <span className="stat-description">
-                            Laboratory billing
-                        </span>
-
                     </div>
-
                 </div>
 
             </div>
 
-
-
-            {/* ==========================
-                RECENT LABORATORY TESTS
-            ========================== */}
-
             <div className="content-card">
-
-
-                {/* Card Header */}
 
                 <div className="card-header">
 
                     <div>
-
                         <h2>
-                            Recent Laboratory Tests
+                            Recent Laboratory Requests
                         </h2>
 
                         <p>
-                            Latest test requests
+                            Latest test prescriptions.
                         </p>
-
                     </div>
 
-
-                    <button
-                        className="view-all-button"
-                    >
-                        View All
-                    </button>
+                    <span className="record-count">
+                        {pendingBills} Pending Bills
+                    </span>
 
                 </div>
 
-
-
-                {/* Table */}
-
                 <div className="table-container">
 
-                    <table>
-
-
-                        {/* Table Header */}
+                    <table className="laboratory-table">
 
                         <thead>
-
                             <tr>
-
-                                <th>
-                                    REQUEST ID
-                                </th>
-
-                                <th>
-                                    PATIENT
-                                </th>
-
-                                <th>
-                                    TEST
-                                </th>
-
-                                <th>
-                                    STATUS
-                                </th>
-
-                                <th>
-                                    ACTION
-                                </th>
-
+                                <th>Request ID</th>
+                                <th>Patient</th>
+                                <th>Test</th>
+                                <th>Status</th>
                             </tr>
-
                         </thead>
-
-
-
-                        {/* Table Body */}
 
                         <tbody>
 
-
-                            {/* No tests */}
-
-                            {recentTests.length === 0 ? (
+                            {prescriptions.length === 0 ? (
 
                                 <tr>
-
-                                    <td colSpan="5">
-
-                                        No laboratory tests found.
-
+                                    <td
+                                        colSpan="4"
+                                        className="empty-state"
+                                    >
+                                        No laboratory requests found.
                                     </td>
-
                                 </tr>
 
                             ) : (
 
+                                prescriptions
+                                    .slice(0, 8)
+                                    .map(
+                                        (item) => (
 
-                                /* Display API data */
-
-                                recentTests.map((test) => (
-
-                                    <tr key={test.id}>
-
-
-                                        {/* Request ID */}
-
-                                        <td className="request-id">
-
-                                            {test.lab_request_id}
-
-                                        </td>
-
-
-                                        {/* Patient */}
-
-                                        <td>
-
-                                            {test.patient_name}
-
-                                        </td>
-
-
-                                        {/* Test */}
-
-                                        <td>
-
-                                            {test.test_name}
-
-                                        </td>
-
-
-                                        {/* Status */}
-
-                                        <td>
-
-                                            <span
-                                                className={`status ${
-                                                    test.status === "COMPLETED"
-                                                        ? "completed"
-                                                        : "pending"
-                                                }`}
+                                            <tr
+                                                key={item.id}
                                             >
 
-                                                {test.status}
+                                                <td>
+                                                    <span className="request-id">
+                                                        {
+                                                            item.lab_request_id
+                                                        }
+                                                    </span>
+                                                </td>
 
-                                            </span>
+                                                <td>
+                                                    {
+                                                        item.patient_name ||
+                                                        "N/A"
+                                                    }
+                                                </td>
 
-                                        </td>
+                                                <td>
+                                                    {
+                                                        item.test_name ||
+                                                        "N/A"
+                                                    }
+                                                </td>
 
+                                                <td>
+                                                    <span
+                                                        className={`status ${
+                                                            item.status ===
+                                                            "COMPLETED"
+                                                                ? "completed"
+                                                                : item.status ===
+                                                                  "SAMPLE_COLLECTED"
+                                                                ? "progress"
+                                                                : "pending"
+                                                        }`}
+                                                    >
+                                                        {
+                                                            item.status
+                                                        }
+                                                    </span>
+                                                </td>
 
-                                        {/* Action */}
+                                            </tr>
 
-                                        <td>
-
-                                            <button
-                                                className="view-button"
-                                            >
-                                                View
-                                            </button>
-
-                                        </td>
-
-
-                                    </tr>
-
-                                ))
+                                        )
+                                    )
 
                             )}
 
@@ -528,10 +305,7 @@ function LabDashboard() {
             </div>
 
         </div>
-
     );
-
 }
-
 
 export default LabDashboard;
