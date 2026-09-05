@@ -1,27 +1,30 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     getLabPrescriptions,
     getLabResults,
     saveLabResult,
 } from "../../services/laboratoryService";
-
 import PerformTestModal from "../../components/laboratory/PerformTestModal";
-
 import "../../styles/laboratory/laboratory.css";
 
 function TestManagement() {
     const [prescriptions, setPrescriptions] = useState([]);
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const [selectedPrescription, setSelectedPrescription] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-
+    const [error, setError] = useState("");
     const [message, setMessage] = useState("");
 
+    const [selectedPrescription, setSelectedPrescription] = useState(null);
+    const [showPerformModal, setShowPerformModal] = useState(false);
+
+    const [selectedResult, setSelectedResult] = useState(null);
+    const [showResultModal, setShowResultModal] = useState(false);
+
+    // Load prescriptions and results
     const loadData = async () => {
         try {
             setLoading(true);
+            setError("");
 
             const [prescriptionData, resultData] = await Promise.all([
                 getLabPrescriptions(),
@@ -40,8 +43,11 @@ function TestManagement() {
                     : resultData.results || []
             );
         } catch (error) {
-            console.error("Error loading test management:", error);
-            setMessage("Unable to load test management data.");
+            console.error(
+                "Error loading laboratory test management data:",
+                error
+            );
+            setError("Unable to load test management data.");
         } finally {
             setLoading(false);
         }
@@ -51,53 +57,111 @@ function TestManagement() {
         loadData();
     }, []);
 
+    // Open Perform Test modal
     const handlePerformTest = (prescription) => {
         setSelectedPrescription(prescription);
-        setShowModal(true);
+        setShowPerformModal(true);
+        setMessage("");
+        setError("");
     };
 
-    const handleCloseModal = () => {
-        setShowModal(false);
+    // Close Perform Test modal
+    const handleClosePerformModal = () => {
+        setShowPerformModal(false);
         setSelectedPrescription(null);
     };
 
+    // Submit result
     const handleSaveResult = async (resultData) => {
         try {
+            setError("");
+            setMessage("");
+
+            if (!selectedPrescription) {
+                return;
+            }
+
+            // Generate a unique result ID
+            const resultId = `RES-${Date.now()}`;
+
             await saveLabResult({
+                result_id: resultId,
                 lab_prescription: selectedPrescription.id,
                 result: resultData.result,
-                remarks: resultData.remarks,
+                remarks: resultData.remarks || "",
                 status: "COMPLETED",
             });
 
-            setMessage("Result saved successfully");
+            setMessage(
+                "Laboratory test result submitted successfully."
+            );
 
-            handleCloseModal();
+            handleClosePerformModal();
 
+            // Reload prescriptions and results
             await loadData();
         } catch (error) {
-            console.error("Error saving result:", error);
+            console.error("Error saving laboratory result:", error);
 
-            setMessage(
+            const backendMessage =
                 error.response?.data?.detail ||
-                "Failed to save laboratory result."
-            );
+                error.response?.data?.message ||
+                "Unable to submit laboratory test result.";
+
+            setError(backendMessage);
         }
     };
 
-    const hasResult = (prescriptionId) => {
-        return results.some(
+    // Find result belonging to a prescription
+    const getResultForPrescription = (prescriptionId) => {
+        return results.find(
             (result) =>
                 Number(result.lab_prescription) === Number(prescriptionId)
         );
     };
 
+    // Check whether prescription has a result
+    const hasResult = (prescription) => {
+        return Boolean(
+            getResultForPrescription(prescription.id)
+        );
+    };
+
+    // Get display status
     const getStatus = (prescription) => {
-        if (hasResult(prescription.id)) {
+        if (
+            prescription.status === "COMPLETED" ||
+            hasResult(prescription)
+        ) {
             return "COMPLETED";
         }
 
-        return prescription.status || "PENDING";
+        if (prescription.status === "SAMPLE_COLLECTED") {
+            return "SAMPLE COLLECTED";
+        }
+
+        return "REQUESTED";
+    };
+
+    // View detailed result
+    const handleViewResult = (prescription) => {
+        const result = getResultForPrescription(prescription.id);
+
+        if (!result) {
+            setError("Laboratory result could not be found.");
+            return;
+        }
+
+        setSelectedResult(result);
+        setShowResultModal(true);
+        setError("");
+        setMessage("");
+    };
+
+    // Close result modal
+    const handleCloseResultModal = () => {
+        setShowResultModal(false);
+        setSelectedResult(null);
     };
 
     if (loading) {
@@ -116,29 +180,39 @@ function TestManagement() {
         <div className="laboratory-page">
             <div className="laboratory-content">
 
+                {/* Page Header */}
                 <div className="page-header">
                     <div>
                         <h1>Test Management</h1>
                         <p>
-                            View and perform laboratory tests prescribed by
-                            doctors.
+                            View prescribed laboratory tests, submit
+                            results and view completed test results.
                         </p>
                     </div>
                 </div>
 
+                {/* Success Message */}
                 {message && (
                     <div className="success-message">
                         {message}
                     </div>
                 )}
 
+                {/* Error Message */}
+                {error && (
+                    <div className="error-message">
+                        {error}
+                    </div>
+                )}
+
+                {/* Test Management Card */}
                 <div className="laboratory-card">
 
                     <div className="card-header">
                         <div>
-                            <h2>Laboratory Test Requests</h2>
+                            <h2>Prescribed Laboratory Tests</h2>
                             <p>
-                                Tests assigned to the laboratory technician
+                                Laboratory tests prescribed by doctors
                             </p>
                         </div>
 
@@ -147,38 +221,48 @@ function TestManagement() {
                         </span>
                     </div>
 
-                    {prescriptions.length === 0 ? (
-                        <div className="empty-state">
-                            <h3>No laboratory tests found</h3>
-                            <p>
-                                There are currently no laboratory
-                                prescriptions assigned.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="table-container">
-                            <table className="laboratory-table">
+                    <div className="table-container">
+                        <table className="laboratory-table">
 
-                                <thead>
+                            <thead>
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Patient</th>
+                                    <th>Test</th>
+                                    <th>Clinical Reason</th>
+                                    <th>Instructions</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {prescriptions.length === 0 ? (
                                     <tr>
-                                        <th>Request ID</th>
-                                        <th>Patient</th>
-                                        <th>Test</th>
-                                        <th>Reason</th>
-                                        <th>Instructions</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
+                                        <td
+                                            colSpan="7"
+                                            className="empty-table-message"
+                                        >
+                                            No laboratory tests have been
+                                            prescribed yet.
+                                        </td>
                                     </tr>
-                                </thead>
+                                ) : (
+                                    prescriptions.map((prescription) => {
 
-                                <tbody>
-                                    {prescriptions.map((prescription) => {
                                         const status =
                                             getStatus(prescription);
 
-                                        return (
-                                            <tr key={prescription.id}>
+                                        const completed =
+                                            status === "COMPLETED";
 
+                                        return (
+                                            <tr
+                                                key={prescription.id}
+                                            >
+
+                                                {/* Request ID */}
                                                 <td>
                                                     <strong>
                                                         {
@@ -187,31 +271,43 @@ function TestManagement() {
                                                     </strong>
                                                 </td>
 
+                                                {/* Patient */}
                                                 <td>
-                                                    {prescription.patient_name ||
-                                                        "N/A"}
+                                                    {
+                                                        prescription.patient_name ||
+                                                        "N/A"
+                                                    }
                                                 </td>
 
+                                                {/* Test */}
                                                 <td>
-                                                    {prescription.test_name ||
-                                                        "N/A"}
+                                                    {
+                                                        prescription.test_name ||
+                                                        "N/A"
+                                                    }
                                                 </td>
 
+                                                {/* Clinical Reason */}
                                                 <td>
-                                                    {prescription.clinical_reason ||
-                                                        "N/A"}
+                                                    {
+                                                        prescription.clinical_reason ||
+                                                        "N/A"
+                                                    }
                                                 </td>
 
+                                                {/* Instructions */}
                                                 <td>
-                                                    {prescription.instructions ||
-                                                        "N/A"}
+                                                    {
+                                                        prescription.instructions ||
+                                                        "N/A"
+                                                    }
                                                 </td>
 
+                                                {/* Status */}
                                                 <td>
                                                     <span
                                                         className={`status-badge ${
-                                                            status ===
-                                                            "COMPLETED"
+                                                            completed
                                                                 ? "status-completed"
                                                                 : "status-pending"
                                                         }`}
@@ -220,17 +316,24 @@ function TestManagement() {
                                                     </span>
                                                 </td>
 
+                                                {/* Action */}
                                                 <td>
-                                                    {status === "COMPLETED" ? (
+                                                    {completed ? (
                                                         <button
-                                                            className="view-result-btn"
-                                                            disabled
+                                                            type="button"
+                                                            className="action-button"
+                                                            onClick={() =>
+                                                                handleViewResult(
+                                                                    prescription
+                                                                )
+                                                            }
                                                         >
-                                                            Completed
+                                                            View Result
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            className="perform-test-btn"
+                                                            type="button"
+                                                            className="action-button"
                                                             onClick={() =>
                                                                 handlePerformTest(
                                                                     prescription
@@ -244,22 +347,178 @@ function TestManagement() {
 
                                             </tr>
                                         );
-                                    })}
-                                </tbody>
+                                    })
+                                )}
 
-                            </table>
-                        </div>
-                    )}
+                            </tbody>
+
+                        </table>
+                    </div>
 
                 </div>
             </div>
 
-            {showModal && selectedPrescription && (
+            {/* Perform Test Modal */}
+            {showPerformModal && selectedPrescription && (
                 <PerformTestModal
                     prescription={selectedPrescription}
-                    onClose={handleCloseModal}
                     onSave={handleSaveResult}
+                    onClose={handleClosePerformModal}
                 />
+            )}
+
+            {/* Detailed Result Modal */}
+            {showResultModal && selectedResult && (
+                <div className="modal-overlay">
+
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <div>
+                                <h2>Laboratory Test Result</h2>
+                                <p>
+                                    Detailed result information
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="modal-close"
+                                onClick={handleCloseResultModal}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="result-details">
+
+                            {/* Basic Information */}
+                            <div className="result-info-grid">
+
+                                <div className="result-info-item">
+                                    <span className="result-label">
+                                        Patient
+                                    </span>
+
+                                    <span className="result-value">
+                                        {
+                                            selectedResult.patient_name ||
+                                            "N/A"
+                                        }
+                                    </span>
+                                </div>
+
+                                <div className="result-info-item">
+                                    <span className="result-label">
+                                        Test
+                                    </span>
+
+                                    <span className="result-value">
+                                        {
+                                            selectedResult.test_name ||
+                                            "N/A"
+                                        }
+                                    </span>
+                                </div>
+
+                                <div className="result-info-item">
+                                    <span className="result-label">
+                                        Request ID
+                                    </span>
+
+                                    <span className="result-value">
+                                        {
+                                            selectedResult.lab_request_id ||
+                                            "N/A"
+                                        }
+                                    </span>
+                                </div>
+
+                                <div className="result-info-item">
+                                    <span className="result-label">
+                                        Result ID
+                                    </span>
+
+                                    <span className="result-value">
+                                        {
+                                            selectedResult.result_id ||
+                                            "N/A"
+                                        }
+                                    </span>
+                                </div>
+
+                                <div className="result-info-item">
+                                    <span className="result-label">
+                                        Status
+                                    </span>
+
+                                    <span className="result-value">
+                                        <span className="status-badge status-completed">
+                                            {
+                                                selectedResult.status ||
+                                                "COMPLETED"
+                                            }
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div className="result-info-item">
+                                    <span className="result-label">
+                                        Completed At
+                                    </span>
+
+                                    <span className="result-value">
+                                        {selectedResult.completed_at
+                                            ? new Date(
+                                                  selectedResult.completed_at
+                                              ).toLocaleString()
+                                            : "N/A"}
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            {/* Result */}
+                            <div className="result-section">
+
+                                <h3>Result</h3>
+
+                                <div className="result-text">
+                                    {selectedResult.result ||
+                                        "No result recorded."}
+                                </div>
+
+                            </div>
+
+                            {/* Remarks */}
+                            <div className="result-section">
+
+                                <h3>Remarks</h3>
+
+                                <div className="result-text">
+                                    {selectedResult.remarks ||
+                                        "No remarks provided."}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                type="button"
+                                className="secondary-button"
+                                onClick={handleCloseResultModal}
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
             )}
         </div>
     );

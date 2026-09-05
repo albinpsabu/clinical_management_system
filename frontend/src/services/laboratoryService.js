@@ -5,6 +5,10 @@ export const getLabPrescriptions = async () => {
     const response = await api.get("/laboratory/prescriptions/");
     return response.data;
 };
+export const getLabTests = async () => {
+    const response = await api.get("/laboratory/tests/");
+    return response.data;
+};
 
 // Get laboratory results
 export const getLabResults = async () => {

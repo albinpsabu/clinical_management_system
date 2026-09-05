@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import {
     LayoutDashboard,
@@ -8,71 +8,56 @@ import {
     LogOut
 } from "lucide-react";
 
-function LaboratorySidebar({ activePage, setActivePage }) {
-
+function LaboratorySidebar() {
     const navigate = useNavigate();
 
-    const menuItems = [
-        {
-            name: "Dashboard",
-            icon: LayoutDashboard,
-            page: "dashboard",
-            path: "/laboratory"
-        },
-        {
-            name: "Test Management",
-            icon: FlaskConical,
-            page: "tests",
-            path: "/laboratory/tests"
-        },
-        {
-            name: "Billing",
-            icon: CreditCard,
-            page: "billing",
-            path: "/laboratory/billing"
-        },
-        {
-            name: "Sales",
-            icon: BarChart3,
-            page: "sales",
-            path: "/laboratory/sales"
-        }
-    ];
-
-    const handleNavigation = (item) => {
-        setActivePage(item.page);
-        navigate(item.path);
-    };
+   const menuItems = [
+    {
+        name: "Dashboard",
+        icon: LayoutDashboard,
+        path: "/laboratory"
+    },
+    {
+        name: "Lab Tests",
+        icon: FlaskConical,
+        path: "/laboratory/tests"
+    },
+    {
+        name: "Test Management",
+        icon: FlaskConical,
+        path: "/laboratory/test-management"
+    },
+    {
+        name: "Billing",
+        icon: CreditCard,
+        path: "/laboratory/billing"
+    }
+]; 
 
     const handleLogout = () => {
         localStorage.removeItem("access_token");
+        localStorage.removeItem("role");
         navigate("/login");
     };
 
     return (
         <aside className="laboratory-sidebar">
 
-            {/* Sidebar Title */}
             <div className="sidebar-title">
                 LABORATORY
             </div>
 
-            {/* Menu */}
             <nav className="sidebar-menu">
-
                 {menuItems.map((item) => {
-
                     const Icon = item.icon;
 
                     return (
-                        <button
-                            key={item.page}
-                            className={`sidebar-item ${
-                                activePage === item.page
-                                    ? "active"
-                                    : ""
-                            }`}
-                            onClick={() => handleNavigation(item)}
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            className={({ isActive }) =>
+                                `sidebar-item ${isActive ? "active" : ""}`
+                            }
                         >
                             <Icon
                                 size={19}
@@ -82,14 +67,11 @@ function LaboratorySidebar({ activePage, setActivePage }) {
                             <span>
                                 {item.name}
                             </span>
-                        </button>
+                        </NavLink>
                     );
-
                 })}
-
             </nav>
 
-            {/* Logout */}
             <button
                 className="sidebar-item logout-item"
                 onClick={handleLogout}

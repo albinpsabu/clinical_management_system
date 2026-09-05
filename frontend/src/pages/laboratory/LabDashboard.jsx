@@ -9,8 +9,6 @@ import {
 
 import "../../styles/laboratory/laboratory.css";
 
-import LaboratorySidebar from "../../components/laboratory/LaboratorySidebar";
-
 import {
     getLabPrescriptions,
     getLabResults,
@@ -152,33 +150,21 @@ function LabDashboard() {
     if (loading) {
 
         return (
+            <div className="lab-dashboard">
 
-            <div className="laboratory-layout">
+                <div className="page-heading">
 
-                <LaboratorySidebar />
+                    <h1>
+                        Laboratory Dashboard
+                    </h1>
 
-                <main className="laboratory-main">
+                    <p>
+                        Loading laboratory data...
+                    </p>
 
-                    <div className="lab-dashboard">
-
-                        <div className="page-heading">
-
-                            <h1>
-                                Laboratory Dashboard
-                            </h1>
-
-                            <p>
-                                Loading laboratory data...
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </main>
+                </div>
 
             </div>
-
         );
 
     }
@@ -190,371 +176,356 @@ function LabDashboard() {
 
     return (
 
-        <div className="laboratory-layout">
-
-            {/* Sidebar */}
-
-            <LaboratorySidebar />
+        <div className="lab-dashboard">
 
 
-            {/* Main Content */}
+            {/* ==========================
+                PAGE HEADING
+            ========================== */}
 
-            <main className="laboratory-main">
+            <div className="page-heading">
 
-                <div className="lab-dashboard">
+                <h1>
+                    Laboratory Dashboard
+                </h1>
+
+                <p>
+                    Overview of today's laboratory activity
+                </p>
+
+            </div>
 
 
-                    {/* ==========================
-                        PAGE HEADING
-                    ========================== */}
+            {/* ==========================
+                ERROR MESSAGE
+            ========================== */}
 
-                    <div className="page-heading">
+            {error && (
 
-                        <h1>
-                            Laboratory Dashboard
-                        </h1>
+                <div className="error-message">
 
-                        <p>
-                            Overview of today's laboratory activity
-                        </p>
+                    {error}
+
+                </div>
+
+            )}
+
+
+            {/* ==========================
+                STATISTICS CARDS
+            ========================== */}
+
+            <div className="stats-grid">
+
+
+                {/* Total Tests */}
+
+                <div className="stat-card">
+
+                    <div className="stat-icon blue">
+
+                        <FlaskConical size={23} />
 
                     </div>
 
 
-                    {/* ==========================
-                        ERROR MESSAGE
-                    ========================== */}
+                    <div className="stat-content">
 
-                    {error && (
+                        <span className="stat-title">
+                            Total Tests
+                        </span>
 
-                        <div className="error-message">
 
-                            {error}
+                        <strong>
+                            {totalTests}
+                        </strong>
 
-                        </div>
 
-                    )}
-
-
-                    {/* ==========================
-                        STATISTICS CARDS
-                    ========================== */}
-
-                    <div className="stats-grid">
-
-
-                        {/* Total Tests */}
-
-                        <div className="stat-card">
-
-                            <div className="stat-icon blue">
-
-                                <FlaskConical size={23} />
-
-                            </div>
-
-
-                            <div className="stat-content">
-
-                                <span className="stat-title">
-                                    Total Tests
-                                </span>
-
-
-                                <strong>
-                                    {totalTests}
-                                </strong>
-
-
-                                <span className="stat-description">
-                                    Laboratory tests
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* Pending Tests */}
-
-                        <div className="stat-card">
-
-                            <div className="stat-icon orange">
-
-                                <Clock3 size={23} />
-
-                            </div>
-
-
-                            <div className="stat-content">
-
-                                <span className="stat-title">
-                                    Pending Tests
-                                </span>
-
-
-                                <strong>
-                                    {pendingTests}
-                                </strong>
-
-
-                                <span className="stat-description">
-                                    Awaiting completion
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* Completed Tests */}
-
-                        <div className="stat-card">
-
-                            <div className="stat-icon green">
-
-                                <CheckCircle2 size={23} />
-
-                            </div>
-
-
-                            <div className="stat-content">
-
-                                <span className="stat-title">
-                                    Completed Tests
-                                </span>
-
-
-                                <strong>
-                                    {completedTests}
-                                </strong>
-
-
-                                <span className="stat-description">
-                                    Completed tests
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* Today's Bills */}
-
-                        <div className="stat-card">
-
-                            <div className="stat-icon purple">
-
-                                <CreditCard size={23} />
-
-                            </div>
-
-
-                            <div className="stat-content">
-
-                                <span className="stat-title">
-                                    Today's Bills
-                                </span>
-
-
-                                <strong>
-                                    ₹{todaysBillAmount.toFixed(2)}
-                                </strong>
-
-
-                                <span className="stat-description">
-                                    Laboratory billing
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    {/* ==========================
-                        RECENT LABORATORY TESTS
-                    ========================== */}
-
-                    <div className="content-card">
-
-
-                        {/* Card Header */}
-
-                        <div className="card-header">
-
-                            <div>
-
-                                <h2>
-                                    Recent Laboratory Tests
-                                </h2>
-
-                                <p>
-                                    Latest test requests
-                                </p>
-
-                            </div>
-
-
-                            <button
-                                className="view-all-button"
-                            >
-                                View All
-                            </button>
-
-                        </div>
-
-
-
-                        {/* Table */}
-
-                        <div className="table-container">
-
-                            <table>
-
-
-                                {/* Table Header */}
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>
-                                            REQUEST ID
-                                        </th>
-
-                                        <th>
-                                            PATIENT
-                                        </th>
-
-                                        <th>
-                                            TEST
-                                        </th>
-
-                                        <th>
-                                            STATUS
-                                        </th>
-
-                                        <th>
-                                            ACTION
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-
-
-                                {/* Table Body */}
-
-                                <tbody>
-
-
-                                    {/* No tests */}
-
-                                    {recentTests.length === 0 ? (
-
-                                        <tr>
-
-                                            <td colSpan="5">
-
-                                                No laboratory tests found.
-
-                                            </td>
-
-                                        </tr>
-
-                                    ) : (
-
-
-                                        /* Display API data */
-
-                                        recentTests.map((test) => (
-
-                                            <tr key={test.id}>
-
-
-                                                {/* Request ID */}
-
-                                                <td className="request-id">
-
-                                                    {test.lab_request_id}
-
-                                                </td>
-
-
-                                                {/* Patient */}
-
-                                                <td>
-
-                                                    {test.patient_name}
-
-                                                </td>
-
-
-                                                {/* Test */}
-
-                                                <td>
-
-                                                    {test.test_name}
-
-                                                </td>
-
-
-                                                {/* Status */}
-
-                                                <td>
-
-                                                    <span
-                                                        className={`status ${
-                                                            test.status === "COMPLETED"
-                                                                ? "completed"
-                                                                : "pending"
-                                                        }`}
-                                                    >
-
-                                                        {test.status}
-
-                                                    </span>
-
-                                                </td>
-
-
-                                                {/* Action */}
-
-                                                <td>
-
-                                                    <button
-                                                        className="view-button"
-                                                    >
-                                                        View
-                                                    </button>
-
-                                                </td>
-
-
-                                            </tr>
-
-                                        ))
-
-                                    )}
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
+                        <span className="stat-description">
+                            Laboratory tests
+                        </span>
 
                     </div>
 
                 </div>
 
-            </main>
+
+
+                {/* Pending Tests */}
+
+                <div className="stat-card">
+
+                    <div className="stat-icon orange">
+
+                        <Clock3 size={23} />
+
+                    </div>
+
+
+                    <div className="stat-content">
+
+                        <span className="stat-title">
+                            Pending Tests
+                        </span>
+
+
+                        <strong>
+                            {pendingTests}
+                        </strong>
+
+
+                        <span className="stat-description">
+                            Awaiting completion
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+
+                {/* Completed Tests */}
+
+                <div className="stat-card">
+
+                    <div className="stat-icon green">
+
+                        <CheckCircle2 size={23} />
+
+                    </div>
+
+
+                    <div className="stat-content">
+
+                        <span className="stat-title">
+                            Completed Tests
+                        </span>
+
+
+                        <strong>
+                            {completedTests}
+                        </strong>
+
+
+                        <span className="stat-description">
+                            Completed tests
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+
+                {/* Today's Bills */}
+
+                <div className="stat-card">
+
+                    <div className="stat-icon purple">
+
+                        <CreditCard size={23} />
+
+                    </div>
+
+
+                    <div className="stat-content">
+
+                        <span className="stat-title">
+                            Today's Bills
+                        </span>
+
+
+                        <strong>
+                            ₹{todaysBillAmount.toFixed(2)}
+                        </strong>
+
+
+                        <span className="stat-description">
+                            Laboratory billing
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            {/* ==========================
+                RECENT LABORATORY TESTS
+            ========================== */}
+
+            <div className="content-card">
+
+
+                {/* Card Header */}
+
+                <div className="card-header">
+
+                    <div>
+
+                        <h2>
+                            Recent Laboratory Tests
+                        </h2>
+
+                        <p>
+                            Latest test requests
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        className="view-all-button"
+                    >
+                        View All
+                    </button>
+
+                </div>
+
+
+
+                {/* Table */}
+
+                <div className="table-container">
+
+                    <table>
+
+
+                        {/* Table Header */}
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    REQUEST ID
+                                </th>
+
+                                <th>
+                                    PATIENT
+                                </th>
+
+                                <th>
+                                    TEST
+                                </th>
+
+                                <th>
+                                    STATUS
+                                </th>
+
+                                <th>
+                                    ACTION
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+
+                        {/* Table Body */}
+
+                        <tbody>
+
+
+                            {/* No tests */}
+
+                            {recentTests.length === 0 ? (
+
+                                <tr>
+
+                                    <td colSpan="5">
+
+                                        No laboratory tests found.
+
+                                    </td>
+
+                                </tr>
+
+                            ) : (
+
+
+                                /* Display API data */
+
+                                recentTests.map((test) => (
+
+                                    <tr key={test.id}>
+
+
+                                        {/* Request ID */}
+
+                                        <td className="request-id">
+
+                                            {test.lab_request_id}
+
+                                        </td>
+
+
+                                        {/* Patient */}
+
+                                        <td>
+
+                                            {test.patient_name}
+
+                                        </td>
+
+
+                                        {/* Test */}
+
+                                        <td>
+
+                                            {test.test_name}
+
+                                        </td>
+
+
+                                        {/* Status */}
+
+                                        <td>
+
+                                            <span
+                                                className={`status ${
+                                                    test.status === "COMPLETED"
+                                                        ? "completed"
+                                                        : "pending"
+                                                }`}
+                                            >
+
+                                                {test.status}
+
+                                            </span>
+
+                                        </td>
+
+
+                                        {/* Action */}
+
+                                        <td>
+
+                                            <button
+                                                className="view-button"
+                                            >
+                                                View
+                                            </button>
+
+                                        </td>
+
+
+                                    </tr>
+
+                                ))
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
 
         </div>
 

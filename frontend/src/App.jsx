@@ -90,9 +90,10 @@ function DoctorDashboard() {
     );
 }
 import LaboratoryDashboard from "./pages/laboratory/LabDashboard.jsx";
-import TestManagement from "./pages/laboratory/TestManagement";
-import LaboratoryBilling from "./pages/laboratory/Billing";
-import Sales from "./pages/laboratory/Sales"; 
+import TestManagement from "./pages/laboratory/TestManagement.jsx";
+import LaboratoryBilling from "./pages/laboratory/Billing.jsx";
+import LaboratoryLayout from "./components/laboratory/LaboratoryLayout";
+import LabTests from "./pages/laboratory/LabTests";
 
 
 function PharmacistDashboard() {
@@ -290,42 +291,56 @@ function App() {
                     LABORATORY
                 ================================================== */}
 
+                    {/* <Route
+                        path="/laboratory"
+                        element={
+                            <ProtectedRoute
+                                role="LAB_TECHNICIAN"
+                            >
+                                <LaboratoryDashboard/>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/laboratory/tests"
+                        element={
+                            <ProtectedRoute role="LAB_TECHNICIAN">
+                                <TestManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/laboratory/billing"
+                        element={
+                            <ProtectedRoute role="LAB_TECHNICIAN">
+                                <LaboratoryBilling />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/laboratory/sales"
+                        element={
+                            <ProtectedRoute role="LAB_TECHNICIAN">
+                                <Sales />
+                            </ProtectedRoute>
+                        }
+                    /> */}
                 <Route
                     path="/laboratory"
                     element={
-                        <ProtectedRoute
-                            role="LAB_TECHNICIAN"
-                        >
-                            <LaboratoryDashboard/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/laboratory/tests"
-                    element={
                         <ProtectedRoute role="LAB_TECHNICIAN">
-                            <TestManagement />
+                            <LaboratoryLayout />
                         </ProtectedRoute>
                     }
-                />
-
-                <Route
-                    path="/laboratory/billing"
-                    element={
-                        <ProtectedRoute role="LAB_TECHNICIAN">
-                            <LaboratoryBilling />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/laboratory/sales"
-                    element={
-                        <ProtectedRoute role="LAB_TECHNICIAN">
-                            <Sales />
-                        </ProtectedRoute>
-                    }
-                />
+                >
+                    <Route index element={<LaboratoryDashboard />} />
+                    <Route path="tests" element={<LabTests />} />
+                    <Route path="test-management" element={<TestManagement />} />
+                    <Route path="billing" element={<LaboratoryBilling />} />
+                    
+                </Route>
 
                 {/* ==================================================
                     PHARMACIST
