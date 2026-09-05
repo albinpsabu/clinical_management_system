@@ -15,7 +15,12 @@ import {
 } from "lucide-react";
 
 import DoctorLayout from "../../components/doctor/DoctorLayout";
-import { getDoctorPatient } from "../../services/doctorApi";
+
+import {
+    getDoctorPatient,
+    getDoctorAppointments,
+} from "../../services/doctorApi";
+
 
 function DoctorPatientProfile() {
 
@@ -23,37 +28,138 @@ function DoctorPatientProfile() {
     const navigate = useNavigate();
     const { appointmentId } = useParams();
 
-    const appointment = location.state?.appointment;
+    // Appointment passed from the appointments/dashboard page.
+    // This is only used as the initial value.
+    const locationAppointment =
+        location.state?.appointment || null;
+
+    const [appointment, setAppointment] = useState(
+        locationAppointment
+    );
 
     const [patient, setPatient] = useState(
-        appointment?.patient_details ||
-        appointment?.patient_data ||
+        locationAppointment?.patient_details ||
+        locationAppointment?.patient_data ||
         null
     );
 
-    const [loading, setLoading] = useState(!patient);
+    const [loading, setLoading] = useState(
+        !patient
+    );
+
     const [error, setError] = useState("");
+
+
+    /*
+    =========================================================
+    LOAD LATEST APPOINTMENT
+    =========================================================
+
+    The appointment object passed through React Router state
+    can be old.
+
+    Therefore, whenever this page opens, we request the
+    appointments from the backend and find the appointment
+    using the URL appointmentId.
+
+    This ensures that the status is always current.
+    */
+
+    useEffect(() => {
+
+        const loadAppointment = async () => {
+
+            try {
+
+                const response =
+                    await getDoctorAppointments();
+
+                const data =
+                    Array.isArray(response.data)
+                        ? response.data
+                        : response.data?.results || [];
+
+                const currentAppointment =
+                    data.find(
+                        (item) =>
+                            String(item.id) ===
+                            String(appointmentId)
+                    );
+
+                if (currentAppointment) {
+
+                    setAppointment(
+                        currentAppointment
+                    );
+
+                }
+
+            } catch (err) {
+
+                console.error(
+                    "Appointment error:",
+                    err.response?.data || err
+                );
+
+            }
+
+        };
+
+        if (appointmentId) {
+            loadAppointment();
+        }
+
+    }, [appointmentId]);
+
+
+    /*
+    =========================================================
+    LOAD PATIENT
+    =========================================================
+    */
 
     useEffect(() => {
 
         const loadPatient = async () => {
 
-            // Backend expects patient_id such as PAT001
-            const patientId = appointment?.patient_id;
+            /*
+            Backend expects patient_id such as PAT001.
+            */
+
+            const patientId =
+                appointment?.patient_id;
+
+            /*
+            If patient information is already available,
+            there is no need to request it again.
+            */
 
             if (!patientId || patient) {
+
                 setLoading(false);
                 return;
+
             }
 
             try {
 
-                const response = await getDoctorPatient(patientId);
+                const response =
+                    await getDoctorPatient(
+                        patientId
+                    );
 
-                // Backend returns:
-                // { patient: {...}, consultations: [...] }
+                /*
+                Backend returns:
 
-                setPatient(response.data?.patient || null);
+                {
+                    patient: {...},
+                    consultations: [...]
+                }
+                */
+
+                setPatient(
+                    response.data?.patient || null
+                );
 
             } catch (err) {
 
@@ -71,6 +177,7 @@ function DoctorPatientProfile() {
                 setLoading(false);
 
             }
+
         };
 
         loadPatient();
@@ -78,29 +185,38 @@ function DoctorPatientProfile() {
     }, [appointment, patient]);
 
 
-    /* =====================================================
-       LOADING
-       ===================================================== */
+    /*
+    =========================================================
+    LOADING
+    =========================================================
+    */
 
     if (loading) {
 
         return (
+
             <DoctorLayout
                 title="Patient Profile"
             >
 
                 <div className="doctor-loading">
+
                     Loading patient information...
+
                 </div>
 
             </DoctorLayout>
+
         );
+
     }
 
 
-    /* =====================================================
-       PAGE
-       ===================================================== */
+    /*
+    =========================================================
+    PAGE
+    =========================================================
+    */
 
     return (
 
@@ -112,9 +228,13 @@ function DoctorPatientProfile() {
             {/* ERROR */}
 
             {error && (
+
                 <div className="doctor-error">
+
                     {error}
+
                 </div>
+
             )}
 
 
@@ -123,27 +243,36 @@ function DoctorPatientProfile() {
 
                 {/* =================================================
                    PATIENT HEADER
-                   ================================================= */}
+                ================================================= */}
 
                 <div className="doctor-profile-header">
 
                     <div className="doctor-profile-avatar">
+
                         <User size={30} />
+
                     </div>
+
 
                     <div>
 
                         <h2>
+
                             {patient?.name ||
                                 appointment?.patient_name ||
                                 "Patient"}
+
                         </h2>
 
+
                         <p>
+
                             Patient ID:{" "}
+
                             {patient?.patient_id ||
                                 appointment?.patient_id ||
                                 "-"}
+
                         </p>
 
                     </div>
@@ -153,7 +282,7 @@ function DoctorPatientProfile() {
 
                 {/* =================================================
                    PATIENT INFORMATION
-                   ================================================= */}
+                ================================================= */}
 
                 <div className="doctor-patient-info-grid">
 
@@ -171,7 +300,9 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
+
                                 {patient?.age || "-"}
+
                             </strong>
 
                         </div>
@@ -192,7 +323,9 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
+
                                 {patient?.gender || "-"}
+
                             </strong>
 
                         </div>
@@ -213,7 +346,9 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
+
                                 {patient?.blood_group || "-"}
+
                             </strong>
 
                         </div>
@@ -234,7 +369,9 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
+
                                 {patient?.phone || "-"}
+
                             </strong>
 
                         </div>
@@ -255,7 +392,9 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
+
                                 {patient?.dob || "-"}
+
                             </strong>
 
                         </div>
@@ -276,7 +415,9 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
+
                                 {patient?.address || "-"}
+
                             </strong>
 
                         </div>
@@ -288,13 +429,14 @@ function DoctorPatientProfile() {
 
                 {/* =================================================
                    APPOINTMENT SUMMARY
-                   ================================================= */}
+                ================================================= */}
 
                 <div className="doctor-appointment-summary">
 
                     <h3>
                         Appointment
                     </h3>
+
 
                     <div className="doctor-summary-grid">
 
@@ -308,7 +450,10 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
-                                {appointment?.appointment_date || "-"}
+
+                                {appointment?.appointment_date ||
+                                    "-"}
+
                             </strong>
 
                         </div>
@@ -323,7 +468,10 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
-                                {appointment?.appointment_time || "-"}
+
+                                {appointment?.appointment_time ||
+                                    "-"}
+
                             </strong>
 
                         </div>
@@ -338,7 +486,10 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
-                                {appointment?.appointment_type || "-"}
+
+                                {appointment?.appointment_type ||
+                                    "-"}
+
                             </strong>
 
                         </div>
@@ -353,7 +504,10 @@ function DoctorPatientProfile() {
                             </span>
 
                             <strong>
-                                {appointment?.status || "-"}
+
+                                {appointment?.status ||
+                                    "-"}
+
                             </strong>
 
                         </div>
@@ -365,7 +519,7 @@ function DoctorPatientProfile() {
 
                 {/* =================================================
                    ACTION BUTTONS
-                   ================================================= */}
+                ================================================= */}
 
                 <div className="doctor-profile-actions">
 
@@ -377,7 +531,9 @@ function DoctorPatientProfile() {
                         className="doctor-secondary-button"
                         onClick={() => navigate(-1)}
                     >
+
                         Back
+
                     </button>
 
 
@@ -388,7 +544,8 @@ function DoctorPatientProfile() {
                         className="doctor-consult-button"
 
                         disabled={
-                            appointment?.status === "CONSULTED"
+                            appointment?.status ===
+                            "CONSULTED"
                         }
 
                         onClick={() =>
@@ -406,9 +563,15 @@ function DoctorPatientProfile() {
 
                         <Stethoscope size={18} />
 
-                        {appointment?.status === "CONSULTED"
+
+                        {appointment?.status ===
+                        "CONSULTED"
+
                             ? "Already Consulted"
-                            : "Consult"}
+
+                            : "Consult"
+
+                        }
 
                     </button>
 
@@ -417,7 +580,10 @@ function DoctorPatientProfile() {
             </section>
 
         </DoctorLayout>
+
     );
+
 }
+
 
 export default DoctorPatientProfile;

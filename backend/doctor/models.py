@@ -135,10 +135,12 @@ class LabPrescription(models.Model):
     )
 
     lab_test = models.ForeignKey(
-    LabTest,
-    on_delete=models.PROTECT,
-    related_name="lab_prescriptions"
-)
+        LabTest,
+        on_delete=models.PROTECT,
+        related_name="lab_prescriptions",
+        null=True,
+        blank=True
+    )
 
     clinical_reason = models.TextField(
         blank=True,
@@ -177,4 +179,4 @@ class LabPrescription(models.Model):
         return (
             f"{self.lab_request_id} - "
             f"{self.lab_test.name}"
-        )   
+        )
