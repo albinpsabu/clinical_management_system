@@ -1,6 +1,5 @@
 from django.db import models
-# Create your models here.
-from django.db import models
+
 from admin_panel.models import LabTest
 from patients.models import Patient
 from appointments.models import Appointment

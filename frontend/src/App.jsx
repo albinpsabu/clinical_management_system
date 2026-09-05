@@ -20,8 +20,44 @@ import Billing from "./pages/receptionist/Billing";
 import Payment from "./pages/receptionist/Payment";
 import BillingHistory from "./pages/receptionist/BillingHistory";
 
+// ==================================================
+// DOCTOR PAGES
+// ==================================================
+
+import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import DoctorAppointments from "./pages/doctor/DoctorAppointments";
+import DoctorPatientProfile from "./pages/doctor/DoctorPatientProfile";
+import DoctorConsultation from "./pages/doctor/DoctorConsultation";
+
+// ==================================================
+// LABORATORY PAGES
+// ==================================================
+
+import LaboratoryDashboard from "./pages/laboratory/LabDashboard.jsx";
+import TestManagement from "./pages/laboratory/TestManagement.jsx";
+import LaboratoryBilling from "./pages/laboratory/Billing.jsx";
+import LaboratoryLayout from "./components/laboratory/LaboratoryLayout";
+import LabTests from "./pages/laboratory/LabTests";
+
+// ==================================================
+// PHARMACIST PAGES
+// ==================================================
+
+import PharmacistDashboard from "./pages/pharmacist/PharmacistDashboard";
+import Medicines from "./pages/pharmacist/Medicines";
+import PharmacistPatients from "./pages/pharmacist/Patients";
+import PatientPrescriptions from "./pages/pharmacist/PatientPrescriptions";
+import Dispense from "./pages/pharmacist/Dispense";
+import Bills from "./pages/pharmacist/Bills";
+import SalesReports from "./pages/pharmacist/SalesReports";
+
+// ==================================================
+// STYLES
+// ==================================================
+
 import "./App.css";
 import "./doctor.css";
+import "./styles/pharmacist.css";
 
 // ==================================================
 // PROTECTED ROUTE
@@ -75,44 +111,12 @@ function Unauthorized() {
 }
 
 // ==================================================
-// PLACEHOLDER PAGES
-// ==================================================
-
-import DoctorDashboard from "./pages/doctor/DoctorDashboard";
-import DoctorAppointments from "./pages/doctor/DoctorAppointments";
-import DoctorPatientProfile from "./pages/doctor/DoctorPatientProfile";
-import DoctorConsultation from "./pages/doctor/DoctorConsultation";
-
-function LaboratoryDashboard() {
-    return (
-        <div>
-            <h1>Laboratory Dashboard</h1>
-        </div>
-    );
-}
-
-// ==================================================
-// PHARMACIST PAGES
-// ==================================================
-
-import PharmacistDashboard from "./pages/pharmacist/PharmacistDashboard";
-import Medicines from "./pages/pharmacist/Medicines";
-import PharmacistPatients from "./pages/pharmacist/Patients";
-import PatientPrescriptions from "./pages/pharmacist/PatientPrescriptions";
-import Dispense from "./pages/pharmacist/Dispense";
-import Bills from "./pages/pharmacist/Bills";
-import SalesReports from "./pages/pharmacist/SalesReports";
-
-import "./styles/pharmacist.css";
-
-// ==================================================
 // APP
 // ==================================================
 
 function App() {
     return (
         <BrowserRouter>
-
             <Routes>
 
                 {/* ==============================================
@@ -277,6 +281,10 @@ function App() {
                     DOCTOR
                 ================================================== */}
 
+                {/* ==============================================
+                    DOCTOR DASHBOARD
+                ============================================== */}
+
                 <Route
                     path="/doctor"
                     element={
@@ -285,6 +293,10 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                {/* ==============================================
+                    DOCTOR APPOINTMENTS
+                ============================================== */}
 
                 <Route
                     path="/doctor/appointments"
@@ -295,6 +307,10 @@ function App() {
                     }
                 />
 
+                {/* ==============================================
+                    DOCTOR PATIENT PROFILE
+                ============================================== */}
+
                 <Route
                     path="/doctor/appointments/:appointmentId/patient"
                     element={
@@ -303,6 +319,10 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                {/* ==============================================
+                    DOCTOR CONSULTATION
+                ============================================== */}
 
                 <Route
                     path="/doctor/appointments/:appointmentId/consult"
@@ -320,13 +340,35 @@ function App() {
                 <Route
                     path="/laboratory"
                     element={
-                        <ProtectedRoute
-                            role="LAB_TECHNICIAN"
-                        >
-                            <LaboratoryDashboard />
+                        <ProtectedRoute role="LAB_TECHNICIAN">
+                            <LaboratoryLayout />
                         </ProtectedRoute>
                     }
-                />
+                >
+                    {/* Laboratory Dashboard */}
+                    <Route
+                        index
+                        element={<LaboratoryDashboard />}
+                    />
+
+                    {/* Laboratory Tests */}
+                    <Route
+                        path="tests"
+                        element={<LabTests />}
+                    />
+
+                    {/* Test Management */}
+                    <Route
+                        path="test-management"
+                        element={<TestManagement />}
+                    />
+
+                    {/* Laboratory Billing */}
+                    <Route
+                        path="billing"
+                        element={<LaboratoryBilling />}
+                    />
+                </Route>
 
                 {/* ==================================================
                     PHARMACIST
@@ -438,7 +480,6 @@ function App() {
                 />
 
             </Routes>
-
         </BrowserRouter>
     );
 }
