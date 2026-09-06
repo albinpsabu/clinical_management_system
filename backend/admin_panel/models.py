@@ -26,7 +26,7 @@ class Department(models.Model):
 
 
 class Doctor(models.Model):
-   
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -34,7 +34,7 @@ class Doctor(models.Model):
         null=True,
         blank=True
     )
-    
+
     doctor_id = models.CharField(
         max_length=20,
         unique=True
@@ -67,6 +67,14 @@ class Doctor(models.Model):
         ],
         default="Active"
     )
+
+    def save(self, *args, **kwargs):
+        if not self.doctor_id:
+            last_doctor = Doctor.objects.order_by("-id").first()
+            next_number = (last_doctor.id + 1) if last_doctor else 1
+            self.doctor_id = f"DOC{next_number:06d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.doctor_id} - {self.name}"
@@ -134,8 +142,17 @@ class Medicine(models.Model):
         default="Active"
     )
 
+    def save(self, *args, **kwargs):
+        if not self.medicine_id:
+            last_medicine = Medicine.objects.order_by("-id").first()
+            next_number = (last_medicine.id + 1) if last_medicine else 1
+            self.medicine_id = f"MED{next_number:06d}"
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.medicine_id} - {self.name}"
+
 
 class LabTest(models.Model):
     test_id = models.CharField(
@@ -165,6 +182,14 @@ class LabTest(models.Model):
         ],
         default="Active"
     )
+
+    def save(self, *args, **kwargs):
+        if not self.test_id:
+            last_test = LabTest.objects.order_by("-id").first()
+            next_number = (last_test.id + 1) if last_test else 1
+            self.test_id = f"LAB{next_number:06d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.test_id} - {self.name}"

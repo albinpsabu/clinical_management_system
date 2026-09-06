@@ -19,6 +19,11 @@ class MedicineSerializer(serializers.ModelSerializer):
         model = Medicine
         fields = "__all__"
 
+        read_only_fields = [
+            "id",
+            "medicine_id",
+        ]
+
 
 # ============================================================
 # MEDICINE STOCK UPDATE
@@ -140,14 +145,18 @@ class MedicinePrescriptionSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "prescription_id",
+
             "patient_name",
             "patient_id",
             "consultation_id",
             "appointment_id",
+
             "medicine_code",
             "medicine_name",
             "stock_quantity",
             "price_per_unit",
+
             "created_at",
         ]
 
@@ -279,8 +288,11 @@ class MedicineBillSerializer(serializers.ModelSerializer):
             "id",
             "bill_id",
 
+            "patient",
             "patient_id",
             "patient_name",
+
+            "appointment",
 
             "total_amount",
             "payment_status",

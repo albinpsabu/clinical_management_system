@@ -482,40 +482,6 @@ function PatientDetails() {
                         CREATE APPOINTMENT NOTICE
                     ===================================== */}
 
-                    <div className="patient-appointment-notice">
-
-                        <div className="patient-appointment-notice-icon">
-                            <CalendarDays size={20} />
-                        </div>
-
-                        <div>
-
-                            <strong>
-                                Ready to create an appointment?
-                            </strong>
-
-                            <p>
-                                Create an appointment for{" "}
-                                <strong>
-                                    {patient.name}
-                                </strong>{" "}
-                                and continue to billing and payment.
-                            </p>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            className="primary-button"
-                            onClick={
-                                handleCreateAppointment
-                            }
-                        >
-                            Create Appointment
-                            <ArrowRight size={15} />
-                        </button>
-
-                    </div>
 
                 </>
             )}

@@ -141,6 +141,14 @@ function DoctorAppointments() {
 
                     String(appointment.id || "")
                         .toLowerCase()
+                        .includes(value) ||
+
+                    String(formatDate(appointment.appointment_date))
+                        .toLowerCase()
+                        .includes(value) ||
+
+                    String(formatTime(appointment.appointment_time))
+                        .toLowerCase()
                         .includes(value)
                 );
 
@@ -164,6 +172,54 @@ function DoctorAppointments() {
         showTodayOnly,
         todayString,
     ]);
+
+    // =====================================================
+    // DATE / TIME DISPLAY
+    // =====================================================
+
+    const formatDate = (dateValue) => {
+        if (!dateValue) {
+            return "-";
+        }
+
+        const date = new Date(`${dateValue}T00:00:00`);
+
+        if (Number.isNaN(date.getTime())) {
+            return dateValue;
+        }
+
+        return date.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+    };
+
+    const formatTime = (timeValue) => {
+        if (!timeValue) {
+            return "-";
+        }
+
+        const [hours, minutes] = String(timeValue).split(":");
+
+        if (hours === undefined || minutes === undefined) {
+            return timeValue;
+        }
+
+        const date = new Date();
+        date.setHours(Number(hours), Number(minutes), 0, 0);
+
+        if (Number.isNaN(date.getTime())) {
+            return timeValue;
+        }
+
+        return date.toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
 
     // =====================================================
     // STATUS
@@ -542,10 +598,9 @@ function DoctorAppointments() {
                                                     {/* DATE */}
 
                                                     <td>
-                                                        {
-                                                            appointment.appointment_date ||
-                                                            "-"
-                                                        }
+                                                        {formatDate(
+                                                            appointment.appointment_date
+                                                        )}
                                                     </td>
 
 
@@ -554,10 +609,9 @@ function DoctorAppointments() {
                                                     <td>
 
                                                         <strong>
-                                                            {
-                                                                appointment.appointment_time ||
-                                                                "-"
-                                                            }
+                                                            {formatTime(
+                                                                appointment.appointment_time
+                                                            )}
                                                         </strong>
 
                                                     </td>

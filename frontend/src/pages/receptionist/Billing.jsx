@@ -17,9 +17,12 @@ import {
 import api from "../../services/api";
 import ReceptionistLayout from "./ReceptionistLayout";
 
+
 function Billing() {
+
     const location = useLocation();
     const navigate = useNavigate();
+
 
     /*
     ==================================================
@@ -27,9 +30,14 @@ function Billing() {
     ==================================================
     */
 
-    const appointment = location.state?.appointment;
-    const patient = location.state?.patient;
-    const doctor = location.state?.doctor;
+    const appointment =
+        location.state?.appointment;
+
+    const patient =
+        location.state?.patient;
+
+    const doctor =
+        location.state?.doctor;
 
 
     /*
@@ -63,6 +71,7 @@ function Billing() {
     */
 
     const formatAppointmentType = (type) => {
+
         if (type === "PRIOR_BOOKING") {
             return "Prior Booking";
         }
@@ -82,6 +91,7 @@ function Billing() {
     */
 
     const formatDate = (date) => {
+
         if (!date) {
             return "-";
         }
@@ -103,11 +113,13 @@ function Billing() {
     */
 
     const formatTime = (time) => {
+
         if (!time) {
             return "-";
         }
 
-        const [hours, minutes] = time.split(":");
+        const [hours, minutes] =
+            time.split(":");
 
         const date = new Date();
 
@@ -118,16 +130,19 @@ function Billing() {
             0
         );
 
-        return date.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return date.toLocaleTimeString(
+            [],
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+            }
+        );
     };
 
 
     /*
     ==================================================
-    TOTAL CALCULATION
+    FEE VALUES
     ==================================================
     */
 
@@ -148,8 +163,10 @@ function Billing() {
     */
 
     const handleCreateBill = async () => {
+
         setError("");
         setSuccess("");
+
 
         /*
         ------------------------------
@@ -158,69 +175,178 @@ function Billing() {
         */
 
         if (!appointment?.id) {
+
             setError(
                 "Appointment ID is missing. Unable to create bill."
             );
+
             return;
         }
 
+
         if (!patient?.id) {
+
             setError(
                 "Patient ID is missing. Unable to create bill."
             );
+
             return;
         }
 
+
+        /*
+        REGISTRATION FEE VALIDATION
+        */
+
+        if (
+            registrationFee === "" ||
+            registrationFee === null
+        ) {
+
+            setError(
+                "Please enter the registration fee."
+            );
+
+            return;
+        }
+
+
+        if (
+            !Number.isFinite(
+                Number(registrationFee)
+            )
+        ) {
+
+            setError(
+                "Registration fee must be a valid number."
+            );
+
+            return;
+        }
+
+
         if (registration < 0) {
+
             setError(
                 "Registration fee cannot be negative."
             );
+
             return;
         }
 
+
+        /*
+        CONSULTATION FEE VALIDATION
+        */
+
+        if (
+            consultationFee === "" ||
+            consultationFee === null
+        ) {
+
+            setError(
+                "Please enter the consultation fee."
+            );
+
+            return;
+        }
+
+
+        if (
+            !Number.isFinite(
+                Number(consultationFee)
+            )
+        ) {
+
+            setError(
+                "Consultation fee must be a valid number."
+            );
+
+            return;
+        }
+
+
         if (consultation < 0) {
+
             setError(
                 "Consultation fee cannot be negative."
             );
+
+            return;
+        }
+
+
+        /*
+        DECIMAL VALIDATION
+        */
+
+        if (
+            Number(registrationFee).toFixed(2) !==
+            Number(registrationFee).toString()
+            &&
+            String(registrationFee).includes(".") &&
+            String(
+                registrationFee
+            ).split(".")[1]?.length > 2
+        ) {
+
+            setError(
+                "Registration fee can have a maximum of 2 decimal places."
+            );
+
+            return;
+        }
+
+
+        if (
+            String(consultationFee).includes(".") &&
+            String(
+                consultationFee
+            ).split(".")[1]?.length > 2
+        ) {
+
+            setError(
+                "Consultation fee can have a maximum of 2 decimal places."
+            );
+
             return;
         }
 
 
         try {
+
             setCreatingBill(true);
-
-
-            /*
-            ------------------------------
-            GENERATE BILL ID
-            ------------------------------
-            */
-
-            const billId =
-                "CB" +
-                Date.now()
-                    .toString()
-                    .slice(-8);
 
 
             /*
             ------------------------------
             BILL DATA
             ------------------------------
+
+            IMPORTANT:
+            bill_id is NOT generated here.
+
+            The backend automatically generates
+            the Bill ID, for example:
+
+            BILL000001
+            BILL000002
+            BILL000003
             */
 
             const billData = {
-                bill_id: billId,
 
-                patient: patient.id,
+                patient:
+                    patient.id,
 
-                appointment: appointment.id,
+                appointment:
+                    appointment.id,
 
                 registration_fee:
-                    registrationFee,
+                    Number(registrationFee).toFixed(2),
 
                 consultation_fee:
-                    consultationFee,
+                    Number(consultationFee).toFixed(2),
 
                 payment_status:
                     "PENDING",
@@ -239,10 +365,11 @@ function Billing() {
             ------------------------------
             */
 
-            const response = await api.post(
-                "/receptionist/billing/",
-                billData
-            );
+            const response =
+                await api.post(
+                    "/receptionist/billing/",
+                    billData
+                );
 
 
             const createdBill =
@@ -257,13 +384,24 @@ function Billing() {
 
             /*
             ------------------------------
-            FINAL BILL ID
+            BACKEND GENERATED BILL ID
             ------------------------------
+
+            The Bill ID must come from Django.
             */
 
             const finalBillId =
-                createdBill.bill_id ||
-                billId;
+                createdBill?.bill_id;
+
+
+            if (!finalBillId) {
+
+                setError(
+                    "Bill was created, but the Bill ID was not returned by the server."
+                );
+
+                return;
+            }
 
 
             setSuccess(
@@ -281,13 +419,22 @@ function Billing() {
                 `/receptionist/payment/${finalBillId}`,
                 {
                     state: {
-                        bill: createdBill,
-                        appointment: appointment,
-                        patient: patient,
-                        doctor: doctor,
+
+                        bill:
+                            createdBill,
+
+                        appointment:
+                            appointment,
+
+                        patient:
+                            patient,
+
+                        doctor:
+                            doctor,
                     },
                 }
             );
+
 
         } catch (err) {
 
@@ -303,10 +450,14 @@ function Billing() {
             ------------------------------
             */
 
-            if (err.response?.status === 401) {
+            if (
+                err.response?.status === 401
+            ) {
+
                 setError(
                     "Your login session has expired. Please login again."
                 );
+
                 return;
             }
 
@@ -317,17 +468,21 @@ function Billing() {
             ------------------------------
             */
 
-            if (err.response?.status === 403) {
+            if (
+                err.response?.status === 403
+            ) {
+
                 setError(
                     "You do not have permission to create bills."
                 );
+
                 return;
             }
 
 
             /*
             ------------------------------
-            DUPLICATE BILL
+            SERVER VALIDATION ERRORS
             ------------------------------
             */
 
@@ -346,19 +501,33 @@ function Billing() {
                             ([field, message]) => {
 
                                 if (
-                                    Array.isArray(message)
+                                    Array.isArray(
+                                        message
+                                    )
                                 ) {
-                                    return `${field}: ${message.join(", ")}`;
+
+                                    return `${field}: ${message.join(
+                                        ", "
+                                    )}`;
+
                                 }
+
 
                                 if (
-                                    typeof message === "object" &&
+                                    typeof message ===
+                                        "object" &&
                                     message !== null
                                 ) {
-                                    return `${field}: ${JSON.stringify(message)}`;
+
+                                    return `${field}: ${JSON.stringify(
+                                        message
+                                    )}`;
+
                                 }
 
+
                                 return `${field}: ${message}`;
+
                             }
                         )
                         .join(" | ");
@@ -369,16 +538,22 @@ function Billing() {
                     "Unable to create bill."
                 );
 
+
             } else {
 
                 setError(
                     "Unable to create bill."
                 );
+
             }
 
+
         } finally {
+
             setCreatingBill(false);
+
         }
+
     };
 
 
@@ -388,9 +563,13 @@ function Billing() {
     ==================================================
     */
 
-    if (!appointment || !patient) {
+    if (
+        !appointment ||
+        !patient
+    ) {
 
         return (
+
             <ReceptionistLayout
                 title="Billing"
                 subtitle="Create consultation bill."
@@ -399,7 +578,11 @@ function Billing() {
                 <div className="missing-card">
 
                     <div className="missing-icon">
-                        <AlertCircle size={28} />
+
+                        <AlertCircle
+                            size={28}
+                        />
+
                     </div>
 
 
@@ -424,14 +607,21 @@ function Billing() {
                             )
                         }
                     >
-                        <ArrowLeft size={17} />
+
+                        <ArrowLeft
+                            size={17}
+                        />
+
                         Back to Appointments
+
                     </button>
 
                 </div>
 
             </ReceptionistLayout>
+
         );
+
     }
 
 
@@ -503,7 +693,9 @@ function Billing() {
 
                 <div className="billing-alert billing-error">
 
-                    <AlertCircle size={18} />
+                    <AlertCircle
+                        size={18}
+                    />
 
 
                     <span>
@@ -517,7 +709,11 @@ function Billing() {
                             setError("")
                         }
                     >
-                        <X size={15} />
+
+                        <X
+                            size={15}
+                        />
+
                     </button>
 
                 </div>
@@ -533,7 +729,9 @@ function Billing() {
 
                 <div className="billing-alert billing-success">
 
-                    <CheckCircle2 size={18} />
+                    <CheckCircle2
+                        size={18}
+                    />
 
 
                     <span>
@@ -547,7 +745,11 @@ function Billing() {
                             setSuccess("")
                         }
                     >
-                        <X size={15} />
+
+                        <X
+                            size={15}
+                        />
+
                     </button>
 
                 </div>
@@ -572,7 +774,9 @@ function Billing() {
 
                         <div className="billing-title-icon patient">
 
-                            <UserRound size={18} />
+                            <UserRound
+                                size={18}
+                            />
 
                         </div>
 
@@ -687,7 +891,9 @@ function Billing() {
 
                         <div className="billing-title-icon appointment">
 
-                            <CalendarDays size={18} />
+                            <CalendarDays
+                                size={18}
+                            />
 
                         </div>
 
@@ -790,7 +996,9 @@ function Billing() {
 
                             <strong className="billing-time">
 
-                                <Clock3 size={13} />
+                                <Clock3
+                                    size={13}
+                                />
 
                                 {formatTime(
                                     appointment.appointment_time
@@ -833,7 +1041,9 @@ function Billing() {
 
                     <div className="billing-title-icon fee">
 
-                        <FileText size={18} />
+                        <FileText
+                            size={18}
+                        />
 
                     </div>
 
@@ -884,7 +1094,9 @@ function Billing() {
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={registrationFee}
+                                    value={
+                                        registrationFee
+                                    }
                                     onChange={(e) => {
 
                                         setRegistrationFee(
@@ -894,6 +1106,10 @@ function Billing() {
                                         setError("");
 
                                     }}
+                                    disabled={
+                                        creatingBill
+                                    }
+                                    required
                                 />
 
                             </div>
@@ -927,7 +1143,9 @@ function Billing() {
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={consultationFee}
+                                    value={
+                                        consultationFee
+                                    }
                                     onChange={(e) => {
 
                                         setConsultationFee(
@@ -937,6 +1155,10 @@ function Billing() {
                                         setError("");
 
                                     }}
+                                    disabled={
+                                        creatingBill
+                                    }
+                                    required
                                 />
 
                             </div>
@@ -966,7 +1188,8 @@ function Billing() {
                             </span>
 
                             <strong>
-                                ₹{registration.toFixed(2)}
+                                ₹
+                                {registration.toFixed(2)}
                             </strong>
 
                         </div>
@@ -979,7 +1202,8 @@ function Billing() {
                             </span>
 
                             <strong>
-                                ₹{consultation.toFixed(2)}
+                                ₹
+                                {consultation.toFixed(2)}
                             </strong>
 
                         </div>
@@ -1001,7 +1225,8 @@ function Billing() {
 
 
                             <strong>
-                                ₹{totalAmount.toFixed(2)}
+                                ₹
+                                {totalAmount.toFixed(2)}
                             </strong>
 
                         </div>
@@ -1018,7 +1243,9 @@ function Billing() {
 
                         <div className="billing-notice-icon">
 
-                            <IndianRupee size={17} />
+                            <IndianRupee
+                                size={17}
+                            />
 
                         </div>
 
@@ -1055,10 +1282,14 @@ function Billing() {
                             onClick={() =>
                                 navigate(-1)
                             }
-                            disabled={creatingBill}
+                            disabled={
+                                creatingBill
+                            }
                         >
 
-                            <ArrowLeft size={16} />
+                            <ArrowLeft
+                                size={16}
+                            />
 
                             Back
 
@@ -1071,7 +1302,9 @@ function Billing() {
                             onClick={
                                 handleCreateBill
                             }
-                            disabled={creatingBill}
+                            disabled={
+                                creatingBill
+                            }
                         >
 
                             {creatingBill ? (
@@ -1088,7 +1321,9 @@ function Billing() {
 
                                 <>
 
-                                    <CreditCard size={16} />
+                                    <CreditCard
+                                        size={16}
+                                    />
 
                                     Proceed to Payment
 
@@ -1105,7 +1340,9 @@ function Billing() {
             </section>
 
         </ReceptionistLayout>
+
     );
+
 }
 
 

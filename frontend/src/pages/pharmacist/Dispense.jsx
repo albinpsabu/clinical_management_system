@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     Pill,
@@ -7,9 +7,15 @@ import {
     Package,
     Calculator,
     CheckCircle,
+    ArrowLeft,
+    RefreshCw,
+    IndianRupee,
 } from "lucide-react";
 
-import { useNavigate, useParams } from "react-router-dom";
+import {
+    useNavigate,
+    useParams,
+} from "react-router-dom";
 
 import PharmacistLayout from "../../components/pharmacist/PharmacistLayout";
 
@@ -23,7 +29,9 @@ function Dispense() {
     const navigate = useNavigate();
     const { prescriptionId } = useParams();
 
-    const [prescription, setPrescription] = useState(null);
+    const [prescription, setPrescription] =
+        useState(null);
+
     const [quantity, setQuantity] = useState(1);
 
     const [loading, setLoading] = useState(true);
@@ -38,6 +46,14 @@ function Dispense() {
     // ============================================================
 
     useEffect(() => {
+        if (!prescriptionId) {
+            setError(
+                "Prescription ID is missing."
+            );
+            setLoading(false);
+            return;
+        }
+
         loadPrescription();
     }, [prescriptionId]);
 
@@ -45,6 +61,7 @@ function Dispense() {
     const loadPrescription = async () => {
         setLoading(true);
         setError("");
+        setSuccess("");
 
         try {
             const storedAppointmentId =
@@ -67,7 +84,9 @@ function Dispense() {
                 );
 
             const prescriptions =
-                response.data || [];
+                Array.isArray(response.data)
+                    ? response.data
+                    : [];
 
             const foundPrescription =
                 prescriptions.find(
@@ -77,16 +96,23 @@ function Dispense() {
                 );
 
             if (!foundPrescription) {
-                setError("Prescription not found.");
+                setError(
+                    "Prescription not found."
+                );
+
                 setLoading(false);
                 return;
             }
 
-            setPrescription(foundPrescription);
+            setPrescription(
+                foundPrescription
+            );
 
-            // ====================================================
-            // CHECK WHETHER ALREADY DISPENSED
-            // ====================================================
+            setQuantity(1);
+
+            // ----------------------------------------------------
+            // CHECK ALREADY DISPENSED
+            // ----------------------------------------------------
 
             const alreadyDispensed =
                 foundPrescription.is_dispensed === true ||
@@ -99,8 +125,6 @@ function Dispense() {
                 );
             }
 
-            setQuantity(1);
-
         } catch (err) {
             console.error(
                 "Prescription loading error:",
@@ -110,9 +134,9 @@ function Dispense() {
             setError(
                 err.response?.data?.detail ||
                 err.response?.data?.error ||
+                err.response?.data?.message ||
                 "Unable to load prescription."
             );
-
         } finally {
             setLoading(false);
         }
@@ -120,23 +144,58 @@ function Dispense() {
 
 
     // ============================================================
-    // CALCULATE TOTAL
+    // ALREADY DISPENSED
+    // ============================================================
+
+    const alreadyDispensed = useMemo(() => {
+        if (!prescription) {
+            return false;
+        }
+
+        return (
+            prescription.is_dispensed === true ||
+            prescription.dispensing_status ===
+                "DISPENSED"
+        );
+    }, [prescription]);
+
+
+    // ============================================================
+    // STOCK
+    // ============================================================
+
+    const availableStock = Number(
+        prescription?.stock_quantity || 0
+    );
+
+
+    // ============================================================
+    // UNIT PRICE
+    // ============================================================
+
+    const unitPrice = Number(
+        prescription?.price_per_unit || 0
+    );
+
+
+    // ============================================================
+    // TOTAL
     // ============================================================
 
     const totalPrice =
-        prescription
-            ? Number(
-                prescription.price_per_unit || 0
-            ) * Number(quantity || 0)
-            : 0;
+        unitPrice *
+        Number(quantity || 0);
 
 
     // ============================================================
-    // HANDLE QUANTITY
+    // QUANTITY CHANGE
     // ============================================================
 
     const handleQuantityChange = (e) => {
         const value = e.target.value;
+
+        setError("");
+        setSuccess("");
 
         if (value === "") {
             setQuantity("");
@@ -145,9 +204,58 @@ function Dispense() {
 
         const numberValue = Number(value);
 
-        if (numberValue >= 1) {
+        if (
+            Number.isInteger(numberValue) &&
+            numberValue >= 1 &&
+            numberValue <= availableStock
+        ) {
             setQuantity(numberValue);
         }
+    };
+
+
+    // ============================================================
+    // VALIDATE QUANTITY
+    // ============================================================
+
+    const validateQuantity = () => {
+        if (
+            quantity === "" ||
+            quantity === null ||
+            quantity === undefined
+        ) {
+            setError(
+                "Please enter the quantity."
+            );
+            return false;
+        }
+
+        const numericQuantity =
+            Number(quantity);
+
+        if (
+            !Number.isInteger(
+                numericQuantity
+            ) ||
+            numericQuantity < 1
+        ) {
+            setError(
+                "Quantity must be at least 1."
+            );
+            return false;
+        }
+
+        if (
+            numericQuantity >
+            availableStock
+        ) {
+            setError(
+                `Only ${availableStock} units are currently available in stock.`
+            );
+            return false;
+        }
+
+        return true;
     };
 
 
@@ -168,14 +276,9 @@ function Dispense() {
             return;
         }
 
-        // ========================================================
+        // --------------------------------------------------------
         // PREVENT DUPLICATE DISPENSING
-        // ========================================================
-
-        const alreadyDispensed =
-            prescription.is_dispensed === true ||
-            prescription.dispensing_status ===
-                "DISPENSED";
+        // --------------------------------------------------------
 
         if (alreadyDispensed) {
             setError(
@@ -184,38 +287,28 @@ function Dispense() {
             return;
         }
 
-        // ========================================================
+        // --------------------------------------------------------
         // VALIDATE QUANTITY
-        // ========================================================
+        // --------------------------------------------------------
 
-        if (
-            quantity === "" ||
-            Number(quantity) < 1
-        ) {
-            setError(
-                "Quantity must be at least 1."
-            );
-            return;
-        }
-
-        const availableStock =
-            Number(
-                prescription.stock_quantity || 0
-            );
-
-        if (
-            Number(quantity) >
-            availableStock
-        ) {
-            setError(
-                `Only ${availableStock} units are currently available in stock.`
-            );
+        if (!validateQuantity()) {
             return;
         }
 
         setSaving(true);
 
         try {
+            /*
+             * IMPORTANT:
+             * No dispensing ID is generated here.
+             *
+             * The backend creates the dispensing/billing
+             * record and its ID automatically.
+             *
+             * React sends only the fields required for
+             * dispensing.
+             */
+
             const response =
                 await dispenseMedicine({
                     prescription:
@@ -234,9 +327,9 @@ function Dispense() {
                 "Medicine dispensed successfully. Bill created."
             );
 
-            // ====================================================
-            // MARK LOCALLY AS DISPENSED
-            // ====================================================
+            // ----------------------------------------------------
+            // UPDATE LOCAL STATE
+            // ----------------------------------------------------
 
             setPrescription(
                 (previous) => ({
@@ -249,9 +342,9 @@ function Dispense() {
                 })
             );
 
-            // ====================================================
+            // ----------------------------------------------------
             // GO TO BILLS
-            // ====================================================
+            // ----------------------------------------------------
 
             setTimeout(() => {
                 navigate(
@@ -268,12 +361,74 @@ function Dispense() {
             setError(
                 err.response?.data?.error ||
                 err.response?.data?.detail ||
+                err.response?.data?.message ||
                 "Unable to dispense medicine."
             );
-
         } finally {
             setSaving(false);
         }
+    };
+
+
+    // ============================================================
+    // DATE FORMATTER
+    // ============================================================
+
+    const formatDate = (dateValue) => {
+        if (!dateValue) {
+            return "-";
+        }
+
+        const date =
+            new Date(dateValue);
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return "-";
+        }
+
+        return date.toLocaleDateString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }
+        );
+    };
+
+
+    // ============================================================
+    // TIME FORMATTER
+    // ============================================================
+
+    const formatTime = (dateValue) => {
+        if (!dateValue) {
+            return "-";
+        }
+
+        const date =
+            new Date(dateValue);
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return "-";
+        }
+
+        return date.toLocaleTimeString(
+            "en-IN",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            }
+        );
     };
 
 
@@ -293,273 +448,375 @@ function Dispense() {
 
             {loading && (
                 <div className="pharmacist-loading">
-                    Loading prescription...
+
+                    <RefreshCw
+                        size={22}
+                        className="pharmacist-spin"
+                    />
+
+                    <span>
+                        Loading prescription...
+                    </span>
+
                 </div>
             )}
 
 
             {/* ====================================================
-                ERROR
+                ERROR WHEN PRESCRIPTION IS NOT AVAILABLE
             ==================================================== */}
 
-            {!loading && error && (
-                <div className="pharmacist-error">
-                    {error}
-                </div>
-            )}
-
-
-            {/* ====================================================
-                PRESCRIPTION
-            ==================================================== */}
-
-            {!loading && prescription && (
-
-                <div className="pharmacist-dispense-grid">
-
-                    {/* ==================================================
-                        PRESCRIPTION DETAILS
-                    ================================================== */}
-
-                    <div className="pharmacist-card">
-
-                        <div className="pharmacist-card-header">
-
-                            <div>
-                                <h2>
-                                    Prescription Details
-                                </h2>
-
-                                <p>
-                                    Review the doctor's prescription
-                                </p>
-                            </div>
-
-                            <Pill size={21} />
-
-                        </div>
-
-
-                        {/* ==================================================
-                            MEDICINE
-                        ================================================== */}
-
-                        <div className="pharmacist-dispense-medicine">
-
-                            <div className="pharmacist-dispense-medicine-icon">
-                                <Pill size={25} />
-                            </div>
-
-                            <div className="pharmacist-medicine-heading">
-
-                                <strong>
-                                    {prescription.medicine_name}
-                                </strong>
-
-                                <span>
-                                    {prescription.medicine_code}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* ==================================================
-                            PATIENT / APPOINTMENT / STOCK
-                        ================================================== */}
-
-                        <div className="pharmacist-detail-grid">
-
-                            {/* Patient */}
-
-                            <div className="pharmacist-detail-item">
-
-                                <User size={18} />
-
-                                <div className="pharmacist-detail-content">
-
-                                    <span className="pharmacist-detail-label">
-                                        Patient
-                                    </span>
-
-                                    <strong className="pharmacist-detail-value">
-                                        {prescription.patient_name}
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* Appointment */}
-
-                            <div className="pharmacist-detail-item">
-
-                                <CalendarDays size={18} />
-
-                                <div className="pharmacist-detail-content">
-
-                                    <span className="pharmacist-detail-label">
-                                        Appointment
-                                    </span>
-
-                                    <strong className="pharmacist-detail-value">
-                                        {prescription.appointment_id}
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* Available Stock */}
-
-                            <div className="pharmacist-detail-item">
-
-                                <Package size={18} />
-
-                                <div className="pharmacist-detail-content">
-
-                                    <span className="pharmacist-detail-label">
-                                        Available Stock
-                                    </span>
-
-                                    <strong className="pharmacist-detail-value">
-                                        {prescription.stock_quantity}
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* ==================================================
-                            PRESCRIPTION INFORMATION
-                        ================================================== */}
-
-                        <div className="pharmacist-prescription-details">
-
-                            {/* Dosage */}
-
-                            <div className="pharmacist-prescription-detail-item">
-
-                                <span className="pharmacist-prescription-detail-label">
-                                    Dosage
-                                </span>
-
-                                <strong className="pharmacist-prescription-detail-value">
-                                    {prescription.dosage}
-                                </strong>
-
-                            </div>
-
-
-                            {/* Frequency */}
-
-                            <div className="pharmacist-prescription-detail-item">
-
-                                <span className="pharmacist-prescription-detail-label">
-                                    Frequency
-                                </span>
-
-                                <strong className="pharmacist-prescription-detail-value">
-                                    {prescription.frequency}
-                                </strong>
-
-                            </div>
-
-
-                            {/* Duration */}
-
-                            <div className="pharmacist-prescription-detail-item">
-
-                                <span className="pharmacist-prescription-detail-label">
-                                    Duration
-                                </span>
-
-                                <strong className="pharmacist-prescription-detail-value">
-                                    {prescription.duration}
-                                </strong>
-
-                            </div>
-
-
-                            {/* Route */}
-
-                            <div className="pharmacist-prescription-detail-item">
-
-                                <span className="pharmacist-prescription-detail-label">
-                                    Route
-                                </span>
-
-                                <strong className="pharmacist-prescription-detail-value">
-                                    {prescription.route || "-"}
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* ==================================================
-                            INSTRUCTIONS
-                        ================================================== */}
-
-                        {prescription.instructions && (
-
-                            <div className="pharmacist-instructions">
-
-                                <span className="pharmacist-instructions-label">
-                                    Instructions
-                                </span>
-
-                                <p className="pharmacist-instructions-text">
-                                    {prescription.instructions}
-                                </p>
-
-                            </div>
-
-                        )}
-
+            {!loading &&
+                !prescription &&
+                error && (
+
+                    <div className="pharmacist-error">
+                        {error}
                     </div>
+                )}
 
 
-                    {/* ==================================================
-                        DISPENSING FORM
-                    ================================================== */}
+            {/* ====================================================
+                PRESCRIPTION CONTENT
+            ==================================================== */}
 
-                    <div className="pharmacist-card">
+            {!loading &&
+                prescription && (
 
-                        <div className="pharmacist-card-header">
+                    <div className="pharmacist-dispense-grid">
 
-                            <div>
-                                <h2>
-                                    Dispensing
-                                </h2>
+                        {/* ==================================================
+                            PRESCRIPTION DETAILS
+                        ================================================== */}
 
-                                <p>
-                                    Enter the quantity to dispense
-                                </p>
+                        <div className="pharmacist-card">
+
+                            <div className="pharmacist-card-header">
+
+                                <div>
+                                    <h2>
+                                        Prescription Details
+                                    </h2>
+
+                                    <p>
+                                        Review the doctor's prescription
+                                        before dispensing
+                                    </p>
+                                </div>
+
+                                <Pill size={21} />
+
                             </div>
 
-                            <Calculator size={21} />
+
+                            {/* ==================================================
+                                MEDICINE
+                            ================================================== */}
+
+                            <div className="pharmacist-dispense-medicine">
+
+                                <div className="pharmacist-dispense-medicine-icon">
+                                    <Pill size={25} />
+                                </div>
+
+                                <div className="pharmacist-medicine-heading">
+
+                                    <strong>
+                                        {
+                                            prescription.medicine_name ||
+                                            "-"
+                                        }
+                                    </strong>
+
+                                    <span>
+                                        {
+                                            prescription.medicine_code ||
+                                            "-"
+                                        }
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            {/* ==================================================
+                                PATIENT / APPOINTMENT / STOCK
+                            ================================================== */}
+
+                            <div className="pharmacist-detail-grid">
+
+                                {/* Patient */}
+
+                                <div className="pharmacist-detail-item">
+
+                                    <User size={18} />
+
+                                    <div className="pharmacist-detail-content">
+
+                                        <span className="pharmacist-detail-label">
+                                            Patient
+                                        </span>
+
+                                        <strong className="pharmacist-detail-value">
+                                            {
+                                                prescription.patient_name ||
+                                                "-"
+                                            }
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* Appointment */}
+
+                                <div className="pharmacist-detail-item">
+
+                                    <CalendarDays size={18} />
+
+                                    <div className="pharmacist-detail-content">
+
+                                        <span className="pharmacist-detail-label">
+                                            Appointment
+                                        </span>
+
+                                        <strong className="pharmacist-detail-value">
+                                            {
+                                                prescription.appointment_id ||
+                                                "-"
+                                            }
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* Stock */}
+
+                                <div className="pharmacist-detail-item">
+
+                                    <Package size={18} />
+
+                                    <div className="pharmacist-detail-content">
+
+                                        <span className="pharmacist-detail-label">
+                                            Available Stock
+                                        </span>
+
+                                        <strong className="pharmacist-detail-value">
+                                            {
+                                                availableStock
+                                            }
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            {/* ==================================================
+                                PRESCRIPTION DATE / TIME
+                            ================================================== */}
+
+                            {(prescription.created_at ||
+                                prescription.prescribed_at) && (
+
+                                <div className="pharmacist-detail-grid">
+
+                                    <div className="pharmacist-detail-item">
+
+                                        <CalendarDays
+                                            size={18}
+                                        />
+
+                                        <div className="pharmacist-detail-content">
+
+                                            <span className="pharmacist-detail-label">
+                                                Prescription Date
+                                            </span>
+
+                                            <strong className="pharmacist-detail-value">
+                                                {
+                                                    formatDate(
+                                                        prescription.prescribed_at ||
+                                                        prescription.created_at
+                                                    )
+                                                }
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div className="pharmacist-detail-item">
+
+                                        <CalendarDays
+                                            size={18}
+                                        />
+
+                                        <div className="pharmacist-detail-content">
+
+                                            <span className="pharmacist-detail-label">
+                                                Prescription Time
+                                            </span>
+
+                                            <strong className="pharmacist-detail-value">
+                                                {
+                                                    formatTime(
+                                                        prescription.prescribed_at ||
+                                                        prescription.created_at
+                                                    )
+                                                }
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            )}
+
+
+                            {/* ==================================================
+                                PRESCRIPTION INFORMATION
+                            ================================================== */}
+
+                            <div className="pharmacist-prescription-details">
+
+                                {/* Dosage */}
+
+                                <div className="pharmacist-prescription-detail-item">
+
+                                    <span className="pharmacist-prescription-detail-label">
+                                        Dosage
+                                    </span>
+
+                                    <strong className="pharmacist-prescription-detail-value">
+                                        {
+                                            prescription.dosage ||
+                                            "-"
+                                        }
+                                    </strong>
+
+                                </div>
+
+
+                                {/* Frequency */}
+
+                                <div className="pharmacist-prescription-detail-item">
+
+                                    <span className="pharmacist-prescription-detail-label">
+                                        Frequency
+                                    </span>
+
+                                    <strong className="pharmacist-prescription-detail-value">
+                                        {
+                                            prescription.frequency ||
+                                            "-"
+                                        }
+                                    </strong>
+
+                                </div>
+
+
+                                {/* Duration */}
+
+                                <div className="pharmacist-prescription-detail-item">
+
+                                    <span className="pharmacist-prescription-detail-label">
+                                        Duration
+                                    </span>
+
+                                    <strong className="pharmacist-prescription-detail-value">
+                                        {
+                                            prescription.duration ||
+                                            "-"
+                                        }
+                                    </strong>
+
+                                </div>
+
+
+                                {/* Route */}
+
+                                <div className="pharmacist-prescription-detail-item">
+
+                                    <span className="pharmacist-prescription-detail-label">
+                                        Route
+                                    </span>
+
+                                    <strong className="pharmacist-prescription-detail-value">
+                                        {
+                                            prescription.route ||
+                                            "-"
+                                        }
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            {/* ==================================================
+                                INSTRUCTIONS
+                            ================================================== */}
+
+                            {prescription.instructions && (
+
+                                <div className="pharmacist-instructions">
+
+                                    <span className="pharmacist-instructions-label">
+                                        Instructions
+                                    </span>
+
+                                    <p className="pharmacist-instructions-text">
+                                        {
+                                            prescription.instructions
+                                        }
+                                    </p>
+
+                                </div>
+
+                            )}
 
                         </div>
 
 
                         {/* ==================================================
-                            ALREADY DISPENSED
+                            DISPENSING FORM
                         ================================================== */}
 
-                        {
-                            (
-                                prescription.is_dispensed === true ||
-                                prescription.dispensing_status ===
-                                    "DISPENSED"
-                            ) ? (
+                        <div className="pharmacist-card">
+
+                            <div className="pharmacist-card-header">
+
+                                <div>
+                                    <h2>
+                                        Dispensing
+                                    </h2>
+
+                                    <p>
+                                        Enter the quantity to dispense
+                                    </p>
+                                </div>
+
+                                <Calculator size={21} />
+
+                            </div>
+
+
+                            {/* ==================================================
+                                ALREADY DISPENSED
+                            ================================================== */}
+
+                            {alreadyDispensed ? (
 
                                 <div className="pharmacist-success">
 
@@ -572,7 +829,9 @@ function Dispense() {
                                         </strong>
 
                                         <p>
-                                            This prescription has already been dispensed and cannot be dispensed again.
+                                            This prescription has already
+                                            been dispensed and cannot be
+                                            dispensed again.
                                         </p>
 
                                     </div>
@@ -582,7 +841,9 @@ function Dispense() {
                             ) : (
 
                                 <form
-                                    onSubmit={handleDispense}
+                                    onSubmit={
+                                        handleDispense
+                                    }
                                     className="pharmacist-dispensing-form"
                                 >
 
@@ -598,28 +859,37 @@ function Dispense() {
 
                                         <input
                                             id="quantity"
+                                            name="quantity"
                                             type="number"
                                             min="1"
                                             max={
-                                                prescription.stock_quantity
+                                                availableStock
                                             }
-                                            value={quantity}
+                                            step="1"
+                                            value={
+                                                quantity
+                                            }
                                             onChange={
                                                 handleQuantityChange
+                                            }
+                                            disabled={
+                                                saving
                                             }
                                             required
                                         />
 
                                         <small>
                                             Available stock:{" "}
-                                            {prescription.stock_quantity}
+                                            {
+                                                availableStock
+                                            }
                                         </small>
 
                                     </div>
 
 
                                     {/* ==================================================
-                                        UNIT PRICE
+                                        PRICE PER UNIT
                                     ================================================== */}
 
                                     <div className="pharmacist-price-row">
@@ -629,11 +899,13 @@ function Dispense() {
                                         </span>
 
                                         <strong>
-                                            ₹
-                                            {Number(
-                                                prescription.price_per_unit ||
-                                                    0
-                                            ).toFixed(2)}
+                                            <IndianRupee
+                                                size={14}
+                                            />
+
+                                            {unitPrice.toFixed(
+                                                2
+                                            )}
                                         </strong>
 
                                     </div>
@@ -650,7 +922,10 @@ function Dispense() {
                                         </span>
 
                                         <strong>
-                                            {quantity || 0}
+                                            {
+                                                quantity ||
+                                                0
+                                            }
                                         </strong>
 
                                     </div>
@@ -667,8 +942,15 @@ function Dispense() {
                                         </span>
 
                                         <strong>
-                                            ₹
-                                            {totalPrice.toFixed(2)}
+                                            <IndianRupee
+                                                size={17}
+                                            />
+
+                                            {
+                                                totalPrice.toFixed(
+                                                    2
+                                                )
+                                            }
                                         </strong>
 
                                     </div>
@@ -695,7 +977,9 @@ function Dispense() {
 
                                         <div className="pharmacist-success">
 
-                                            <CheckCircle size={17} />
+                                            <CheckCircle
+                                                size={17}
+                                            />
 
                                             {success}
 
@@ -705,7 +989,7 @@ function Dispense() {
 
 
                                     {/* ==================================================
-                                        BUTTONS
+                                        ACTION BUTTONS
                                     ================================================== */}
 
                                     <div className="pharmacist-form-actions">
@@ -716,8 +1000,14 @@ function Dispense() {
                                             onClick={() =>
                                                 navigate(-1)
                                             }
-                                            disabled={saving}
+                                            disabled={
+                                                saving
+                                            }
                                         >
+                                            <ArrowLeft
+                                                size={16}
+                                            />
+
                                             Cancel
                                         </button>
 
@@ -730,17 +1020,33 @@ function Dispense() {
                                                 quantity === "" ||
                                                 Number(quantity) < 1 ||
                                                 Number(quantity) >
-                                                    Number(
-                                                        prescription.stock_quantity
-                                                    )
+                                                    availableStock ||
+                                                availableStock <= 0
                                             }
                                         >
 
-                                            <Package size={16} />
+                                            {saving ? (
 
-                                            {saving
-                                                ? "Dispensing..."
-                                                : "Dispense Medicine"}
+                                                <>
+                                                    <RefreshCw
+                                                        size={16}
+                                                        className="pharmacist-spin"
+                                                    />
+
+                                                    Dispensing...
+                                                </>
+
+                                            ) : (
+
+                                                <>
+                                                    <Package
+                                                        size={16}
+                                                    />
+
+                                                    Dispense Medicine
+                                                </>
+
+                                            )}
 
                                         </button>
 
@@ -748,14 +1054,13 @@ function Dispense() {
 
                                 </form>
 
-                            )
-                        }
+                            )}
+
+                        </div>
 
                     </div>
 
-                </div>
-
-            )}
+                )}
 
         </PharmacistLayout>
     );

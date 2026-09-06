@@ -56,24 +56,23 @@ function TestManagement() {
             ]);
 
             const prescriptionData =
-                Array.isArray(prescriptionResponse.data)
+                Array.isArray(prescriptionResponse?.data)
                     ? prescriptionResponse.data
-                    : prescriptionResponse.data?.results || [];
+                    : prescriptionResponse?.data?.results || [];
 
             const resultData =
-                Array.isArray(resultResponse.data)
+                Array.isArray(resultResponse?.data)
                     ? resultResponse.data
-                    : resultResponse.data?.results || [];
+                    : resultResponse?.data?.results || [];
 
             const billData =
-                Array.isArray(billResponse.data)
+                Array.isArray(billResponse?.data)
                     ? billResponse.data
-                    : billResponse.data?.results || [];
+                    : billResponse?.data?.results || [];
 
             setPrescriptions(prescriptionData);
             setResults(resultData);
             setBills(billData);
-
         } catch (error) {
             console.error(
                 "Error loading laboratory test management data:",
@@ -81,10 +80,9 @@ function TestManagement() {
             );
 
             setError(
-                error.response?.data?.detail ||
+                error?.response?.data?.detail ||
                 "Unable to load test management data."
             );
-
         } finally {
             setLoading(false);
         }
@@ -101,7 +99,7 @@ function TestManagement() {
     const getResultForPrescription = (prescriptionId) => {
         return results.find(
             (result) =>
-                Number(result.lab_prescription) ===
+                Number(result?.lab_prescription) ===
                 Number(prescriptionId)
         );
     };
@@ -113,7 +111,7 @@ function TestManagement() {
     const getBillForPrescription = (prescriptionId) => {
         return bills.find(
             (bill) =>
-                Number(bill.lab_prescription) ===
+                Number(bill?.lab_prescription) ===
                 Number(prescriptionId)
         );
     };
@@ -127,6 +125,11 @@ function TestManagement() {
             setActionLoading(true);
             setError("");
             setMessage("");
+
+            if (!prescription) {
+                setError("Laboratory prescription could not be found.");
+                return;
+            }
 
             if (prescription.status !== "REQUESTED") {
                 setError(
@@ -142,7 +145,6 @@ function TestManagement() {
             );
 
             await loadData();
-
         } catch (error) {
             console.error(
                 "Sample collection error:",
@@ -150,10 +152,9 @@ function TestManagement() {
             );
 
             setError(
-                error.response?.data?.detail ||
+                error?.response?.data?.detail ||
                 "Unable to collect sample."
             );
-
         } finally {
             setActionLoading(false);
         }
@@ -166,6 +167,11 @@ function TestManagement() {
     const handlePerformTest = (prescription) => {
         setError("");
         setMessage("");
+
+        if (!prescription) {
+            setError("Laboratory prescription could not be found.");
+            return;
+        }
 
         if (prescription.status !== "SAMPLE_COLLECTED") {
             setError(
@@ -209,6 +215,9 @@ function TestManagement() {
 
     const handleSaveResult = async (resultData) => {
         if (!selectedPrescription) {
+            setError(
+                "Laboratory prescription could not be found."
+            );
             return;
         }
 
@@ -217,20 +226,26 @@ function TestManagement() {
             setError("");
             setMessage("");
 
-            const resultId =
-                `RES-${Date.now()}`;
+            /*
+             * IMPORTANT:
+             * result_id is NOT generated in React.
+             *
+             * Django must automatically generate:
+             * result_id
+             *
+             * The frontend sends only the fields required
+             * to create the laboratory result.
+             */
 
             await saveLabResult({
-                result_id: resultId,
-
                 lab_prescription:
                     selectedPrescription.id,
 
                 result:
-                    resultData.result,
+                    resultData?.result || "",
 
                 remarks:
-                    resultData.remarks || "",
+                    resultData?.remarks || "",
 
                 status:
                     "COMPLETED",
@@ -244,7 +259,6 @@ function TestManagement() {
             );
 
             await loadData();
-
         } catch (error) {
             console.error(
                 "Error saving laboratory result:",
@@ -252,7 +266,7 @@ function TestManagement() {
             );
 
             const data =
-                error.response?.data;
+                error?.response?.data;
 
             let errorMessage =
                 "Unable to submit laboratory test result.";
@@ -263,10 +277,26 @@ function TestManagement() {
                 )
                     ? data.lab_prescription[0]
                     : data.lab_prescription;
-
+            } else if (data?.result) {
+                errorMessage = Array.isArray(
+                    data.result
+                )
+                    ? data.result[0]
+                    : data.result;
+            } else if (data?.remarks) {
+                errorMessage = Array.isArray(
+                    data.remarks
+                )
+                    ? data.remarks[0]
+                    : data.remarks;
+            } else if (data?.status) {
+                errorMessage = Array.isArray(
+                    data.status
+                )
+                    ? data.status[0]
+                    : data.status;
             } else if (data?.detail) {
                 errorMessage = data.detail;
-
             } else if (data?.message) {
                 errorMessage = data.message;
             }
@@ -274,7 +304,6 @@ function TestManagement() {
             setError(errorMessage);
 
             throw error;
-
         } finally {
             setActionLoading(false);
         }
@@ -285,6 +314,13 @@ function TestManagement() {
     // ==================================================
 
     const handleViewResult = (prescription) => {
+        if (!prescription) {
+            setError(
+                "Laboratory prescription could not be found."
+            );
+            return;
+        }
+
         const result =
             getResultForPrescription(
                 prescription.id
@@ -327,6 +363,13 @@ function TestManagement() {
             setError("");
             setMessage("");
 
+            if (!prescription) {
+                setError(
+                    "Laboratory prescription could not be found."
+                );
+                return;
+            }
+
             const result =
                 getResultForPrescription(
                     prescription.id
@@ -357,12 +400,20 @@ function TestManagement() {
                 );
 
                 setShowResultModal(false);
+                setSelectedResult(null);
 
                 window.location.href =
                     "/laboratory/billing";
 
                 return;
             }
+
+            /*
+             * IMPORTANT:
+             * bill_id is NOT generated in React.
+             *
+             * Django automatically generates the bill ID.
+             */
 
             await createLabBill({
                 lab_prescription:
@@ -386,7 +437,6 @@ function TestManagement() {
                 window.location.href =
                     "/laboratory/billing";
             }, 700);
-
         } catch (error) {
             console.error(
                 "Error generating laboratory bill:",
@@ -394,7 +444,7 @@ function TestManagement() {
             );
 
             const data =
-                error.response?.data;
+                error?.response?.data;
 
             let errorMessage =
                 "Unable to generate laboratory bill.";
@@ -405,16 +455,19 @@ function TestManagement() {
                 )
                     ? data.lab_prescription[0]
                     : data.lab_prescription;
-
+            } else if (data?.bill_id) {
+                errorMessage = Array.isArray(
+                    data.bill_id
+                )
+                    ? data.bill_id[0]
+                    : data.bill_id;
             } else if (data?.detail) {
                 errorMessage = data.detail;
-
             } else if (data?.message) {
                 errorMessage = data.message;
             }
 
             setError(errorMessage);
-
         } finally {
             setActionLoading(false);
         }
@@ -427,18 +480,18 @@ function TestManagement() {
     const getStatus = (prescription) => {
         const result =
             getResultForPrescription(
-                prescription.id
+                prescription?.id
             );
 
         if (
-            prescription.status === "COMPLETED" ||
+            prescription?.status === "COMPLETED" ||
             result?.status === "COMPLETED"
         ) {
             return "COMPLETED";
         }
 
         if (
-            prescription.status ===
+            prescription?.status ===
             "SAMPLE_COLLECTED"
         ) {
             return "SAMPLE COLLECTED";
@@ -454,15 +507,11 @@ function TestManagement() {
     if (loading) {
         return (
             <div className="laboratory-page">
-
                 <div className="laboratory-content">
-
                     <div className="loading-message">
                         Loading test management...
                     </div>
-
                 </div>
-
             </div>
         );
     }
@@ -473,15 +522,12 @@ function TestManagement() {
 
     return (
         <div className="laboratory-page">
-
             <div className="laboratory-content">
 
                 {/* PAGE HEADER */}
 
                 <div className="page-header">
-
                     <div>
-
                         <h1>
                             Test Management
                         </h1>
@@ -491,13 +537,11 @@ function TestManagement() {
                             tests, submit results and
                             generate bills.
                         </p>
-
                     </div>
 
                     <span className="record-count">
                         {prescriptions.length} Tests
                     </span>
-
                 </div>
 
                 {/* SUCCESS MESSAGE */}
@@ -519,11 +563,8 @@ function TestManagement() {
                 {/* TEST MANAGEMENT CARD */}
 
                 <div className="laboratory-card">
-
                     <div className="card-header">
-
                         <div>
-
                             <h2>
                                 Prescribed Laboratory Tests
                             </h2>
@@ -532,19 +573,13 @@ function TestManagement() {
                                 Laboratory tests prescribed
                                 by doctors.
                             </p>
-
                         </div>
-
                     </div>
 
                     <div className="table-container">
-
                         <table className="laboratory-table">
-
                             <thead>
-
                                 <tr>
-
                                     <th>
                                         Request ID
                                     </th>
@@ -572,17 +607,12 @@ function TestManagement() {
                                     <th>
                                         Action
                                     </th>
-
                                 </tr>
-
                             </thead>
 
                             <tbody>
-
                                 {prescriptions.length === 0 ? (
-
                                     <tr>
-
                                         <td
                                             colSpan="7"
                                             className="empty-table-message"
@@ -590,14 +620,10 @@ function TestManagement() {
                                             No laboratory tests
                                             have been prescribed yet.
                                         </td>
-
                                     </tr>
-
                                 ) : (
-
                                     prescriptions.map(
                                         (prescription) => {
-
                                             const status =
                                                 getStatus(
                                                     prescription
@@ -614,23 +640,20 @@ function TestManagement() {
                                                 );
 
                                             return (
-
                                                 <tr
                                                     key={
                                                         prescription.id
                                                     }
                                                 >
-
                                                     {/* REQUEST ID */}
 
                                                     <td>
-
                                                         <strong>
                                                             {
-                                                                prescription.lab_request_id
+                                                                prescription.lab_request_id ||
+                                                                "N/A"
                                                             }
                                                         </strong>
-
                                                     </td>
 
                                                     {/* PATIENT */}
@@ -672,12 +695,14 @@ function TestManagement() {
                                                     {/* STATUS */}
 
                                                     <td>
-
                                                         <span
                                                             className={`status-badge ${
                                                                 status ===
                                                                 "COMPLETED"
                                                                     ? "status-completed"
+                                                                    : status ===
+                                                                      "SAMPLE COLLECTED"
+                                                                    ? "status-progress"
                                                                     : "status-pending"
                                                             }`}
                                                         >
@@ -685,16 +710,13 @@ function TestManagement() {
                                                                 status
                                                             }
                                                         </span>
-
                                                     </td>
 
                                                     {/* ACTION */}
 
                                                     <td>
-
                                                         {status ===
                                                         "REQUESTED" ? (
-
                                                             <button
                                                                 type="button"
                                                                 className="perform-test-btn"
@@ -711,10 +733,8 @@ function TestManagement() {
                                                                     ? "Processing..."
                                                                     : "Collect Sample"}
                                                             </button>
-
                                                         ) : status ===
                                                           "SAMPLE COLLECTED" ? (
-
                                                             <button
                                                                 type="button"
                                                                 className="perform-test-btn"
@@ -729,20 +749,10 @@ function TestManagement() {
                                                             >
                                                                 Perform Test
                                                             </button>
-
                                                         ) : (
-
                                                             <div
-                                                                style={{
-                                                                    display:
-                                                                        "flex",
-                                                                    gap:
-                                                                        "8px",
-                                                                    flexWrap:
-                                                                        "wrap",
-                                                                }}
+                                                                className="test-management-actions"
                                                             >
-
                                                                 <button
                                                                     type="button"
                                                                     className="view-result-btn"
@@ -756,15 +766,10 @@ function TestManagement() {
                                                                 </button>
 
                                                                 {bill ? (
-
-                                                                    <span
-                                                                        className="status-badge status-completed"
-                                                                    >
+                                                                    <span className="status-badge status-completed">
                                                                         BILLED
                                                                     </span>
-
                                                                 ) : result ? (
-
                                                                     <button
                                                                         type="button"
                                                                         className="perform-test-btn"
@@ -777,33 +782,23 @@ function TestManagement() {
                                                                             )
                                                                         }
                                                                     >
-                                                                        Generate Bill
+                                                                        {actionLoading
+                                                                            ? "Generating..."
+                                                                            : "Generate Bill"}
                                                                     </button>
-
                                                                 ) : null}
-
                                                             </div>
-
                                                         )}
-
                                                     </td>
-
                                                 </tr>
-
                                             );
                                         }
                                     )
-
                                 )}
-
                             </tbody>
-
                         </table>
-
                     </div>
-
                 </div>
-
             </div>
 
             {/* ==================================================
@@ -812,7 +807,6 @@ function TestManagement() {
 
             {showPerformModal &&
                 selectedPrescription && (
-
                     <PerformTestModal
                         prescription={
                             selectedPrescription
@@ -824,7 +818,6 @@ function TestManagement() {
                             handleClosePerformModal
                         }
                     />
-
                 )}
 
             {/* ==================================================
@@ -833,15 +826,13 @@ function TestManagement() {
 
             {showResultModal &&
                 selectedResult && (
-
                     <div className="modal-overlay">
-
                         <div className="modal-content">
 
+                            {/* MODAL HEADER */}
+
                             <div className="modal-header">
-
                                 <div>
-
                                     <h2>
                                         Laboratory Test Result
                                     </h2>
@@ -850,7 +841,6 @@ function TestManagement() {
                                         Detailed result
                                         information
                                     </p>
-
                                 </div>
 
                                 <button
@@ -865,8 +855,9 @@ function TestManagement() {
                                 >
                                     ×
                                 </button>
-
                             </div>
+
+                            {/* RESULT DETAILS */}
 
                             <div className="result-details">
 
@@ -875,7 +866,6 @@ function TestManagement() {
                                 <div className="result-info-grid">
 
                                     <div className="result-info-item">
-
                                         <span className="result-label">
                                             Patient
                                         </span>
@@ -886,11 +876,9 @@ function TestManagement() {
                                                 "N/A"
                                             }
                                         </span>
-
                                     </div>
 
                                     <div className="result-info-item">
-
                                         <span className="result-label">
                                             Test
                                         </span>
@@ -901,11 +889,9 @@ function TestManagement() {
                                                 "N/A"
                                             }
                                         </span>
-
                                     </div>
 
                                     <div className="result-info-item">
-
                                         <span className="result-label">
                                             Request ID
                                         </span>
@@ -916,11 +902,9 @@ function TestManagement() {
                                                 "N/A"
                                             }
                                         </span>
-
                                     </div>
 
                                     <div className="result-info-item">
-
                                         <span className="result-label">
                                             Result ID
                                         </span>
@@ -931,92 +915,72 @@ function TestManagement() {
                                                 "N/A"
                                             }
                                         </span>
-
                                     </div>
 
                                     <div className="result-info-item">
-
                                         <span className="result-label">
                                             Status
                                         </span>
 
                                         <span className="result-value">
-
                                             <span className="status-badge status-completed">
                                                 {
                                                     selectedResult.status ||
                                                     "COMPLETED"
                                                 }
                                             </span>
-
                                         </span>
-
                                     </div>
 
                                     <div className="result-info-item">
-
                                         <span className="result-label">
                                             Completed At
                                         </span>
 
                                         <span className="result-value">
-
                                             {selectedResult.completed_at
                                                 ? new Date(
                                                       selectedResult.completed_at
                                                   ).toLocaleString()
                                                 : "N/A"}
-
                                         </span>
-
                                     </div>
-
                                 </div>
 
                                 {/* RESULT */}
 
                                 <div className="result-section">
-
                                     <h3>
                                         Result
                                     </h3>
 
                                     <div className="result-text">
-
                                         {
                                             selectedResult.result ||
                                             "No result recorded."
                                         }
-
                                     </div>
-
                                 </div>
 
                                 {/* REMARKS */}
 
                                 <div className="result-section">
-
                                     <h3>
                                         Remarks
                                     </h3>
 
                                     <div className="result-text">
-
                                         {
                                             selectedResult.remarks ||
                                             "No remarks provided."
                                         }
-
                                     </div>
-
                                 </div>
-
                             </div>
 
                             {/* RESULT MODAL FOOTER */}
 
                             <div className="modal-footer">
-
                                 <button
                                     type="button"
                                     className="secondary-button"
@@ -1033,48 +997,49 @@ function TestManagement() {
                                 {getBillForPrescription(
                                     selectedResult.lab_prescription
                                 ) ? (
-
                                     <span className="status-badge status-completed">
                                         BILL GENERATED
                                     </span>
-
                                 ) : (
-
                                     <button
                                         type="button"
                                         className="perform-test-btn"
                                         disabled={
                                             actionLoading
                                         }
-                                        onClick={() =>
-                                            handleGenerateBill(
+                                        onClick={() => {
+                                            const prescription =
                                                 prescriptions.find(
-                                                    (prescription) =>
+                                                    (item) =>
                                                         Number(
-                                                            prescription.id
+                                                            item.id
                                                         ) ===
                                                         Number(
                                                             selectedResult.lab_prescription
                                                         )
-                                                )
-                                            )
-                                        }
+                                                );
+
+                                            if (!prescription) {
+                                                setError(
+                                                    "Laboratory prescription could not be found."
+                                                );
+                                                return;
+                                            }
+
+                                            handleGenerateBill(
+                                                prescription
+                                            );
+                                        }}
                                     >
                                         {actionLoading
                                             ? "Generating..."
                                             : "Generate Bill"}
                                     </button>
-
                                 )}
-
                             </div>
-
                         </div>
-
                     </div>
-
                 )}
-
         </div>
     );
 }

@@ -16,6 +16,11 @@ class LabTestSerializer(serializers.ModelSerializer):
         model = LabTest
         fields = "__all__"
 
+        read_only_fields = [
+            "id",
+            "test_id",
+        ]
+
 
 # ============================================================
 # LAB PRESCRIPTION
@@ -59,6 +64,7 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "lab_request_id",
             "patient",
             "patient_name",
             "test_name",
@@ -110,6 +116,7 @@ class LabResultSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "result_id",
             "patient",
             "patient_name",
             "lab_request_id",

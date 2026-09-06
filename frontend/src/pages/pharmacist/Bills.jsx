@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Receipt,
     Search,
     CheckCircle,
     Clock,
     IndianRupee,
+    RefreshCw,
+    CalendarDays,
+    User,
+    FileText,
 } from "lucide-react";
 
 import PharmacistLayout from "../../components/pharmacist/PharmacistLayout";
@@ -22,15 +26,15 @@ function Bills() {
     const [filter, setFilter] = useState("ALL");
 
     const [loading, setLoading] = useState(true);
-    const [paying, setPaying] = useState(false);
+    const [payingId, setPayingId] = useState(null);
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
 
-    // ==========================================
+    // =====================================================
     // LOAD BILLS
-    // ==========================================
+    // =====================================================
 
     useEffect(() => {
         loadBills();
@@ -42,34 +46,46 @@ function Bills() {
         setError("");
 
         try {
-            const response =
-                await getPharmacistBills();
+            const response = await getPharmacistBills();
 
-            setBills(response.data || []);
+            const data = Array.isArray(response.data)
+                ? response.data
+                : [];
 
+            setBills(data);
         } catch (err) {
-            console.error(
-                "Bills loading error:",
-                err
-            );
+            console.error("Bills loading error:", err);
 
             setError(
                 err.response?.data?.detail ||
                 err.response?.data?.error ||
                 "Unable to load pharmacy bills."
             );
-
         } finally {
             setLoading(false);
         }
     };
 
 
-    // ==========================================
-    // PAY BILL
-    // ==========================================
+    // =====================================================
+    // CLEAR MESSAGES
+    // =====================================================
+
+    const clearMessages = () => {
+        setError("");
+        setSuccess("");
+    };
+
+
+    // =====================================================
+    // PAYMENT
+    // =====================================================
 
     const handlePayment = async (bill) => {
+        if (!bill?.bill_id) {
+            setError("Bill ID is missing.");
+            return;
+        }
 
         if (bill.payment_status === "PAID") {
             return;
@@ -83,72 +99,80 @@ function Bills() {
             return;
         }
 
-        setPaying(true);
-        setError("");
-        setSuccess("");
+        setPayingId(bill.bill_id);
+        clearMessages();
 
         try {
-            const response =
-                await payPharmacistBill(
-                    bill.bill_id
-                );
+            const response = await payPharmacistBill(
+                bill.bill_id
+            );
 
-            const updatedBill =
-                response.data;
+            const updatedBill = response.data;
+
+            if (!updatedBill) {
+                throw new Error(
+                    "Invalid response received from the server."
+                );
+            }
 
             setBills((currentBills) =>
-                currentBills.map(
-                    (currentBill) =>
-                        currentBill.bill_id ===
-                        updatedBill.bill_id
-                            ? updatedBill
-                            : currentBill
+                currentBills.map((currentBill) =>
+                    currentBill.bill_id === updatedBill.bill_id
+                        ? updatedBill
+                        : currentBill
                 )
             );
 
             setSuccess(
                 `Bill ${bill.bill_id} has been marked as paid.`
             );
-
         } catch (err) {
-            console.error(
-                "Payment error:",
-                err
-            );
+            console.error("Payment error:", err);
 
             setError(
                 err.response?.data?.detail ||
                 err.response?.data?.error ||
+                err.response?.data?.message ||
                 "Unable to complete payment."
             );
-
         } finally {
-            setPaying(false);
+            setPayingId(null);
         }
     };
 
 
-    // ==========================================
+    // =====================================================
     // SEARCH + FILTER
-    // ==========================================
+    // =====================================================
 
-    const filteredBills = bills.filter(
-        (bill) => {
+    const filteredBills = useMemo(() => {
+        const searchText = search
+            .toLowerCase()
+            .trim();
 
-            const searchText =
-                search.toLowerCase().trim();
+        return bills.filter((bill) => {
+            const billId = String(
+                bill.bill_id || ""
+            ).toLowerCase();
+
+            const patientId = String(
+                bill.patient_id || ""
+            ).toLowerCase();
+
+            const patientName = String(
+                bill.patient_name || ""
+            ).toLowerCase();
+
+            const appointment = String(
+                bill.appointment || ""
+            ).toLowerCase();
 
             const matchesSearch =
                 !searchText ||
-                bill.bill_id
-                    ?.toLowerCase()
-                    .includes(searchText) ||
-                bill.patient_id
-                    ?.toLowerCase()
-                    .includes(searchText) ||
-                bill.patient_name
-                    ?.toLowerCase()
-                    .includes(searchText);
+                billId.includes(searchText) ||
+                patientId.includes(searchText) ||
+                patientName.includes(searchText) ||
+                appointment.includes(searchText);
 
             const matchesFilter =
                 filter === "ALL" ||
@@ -158,28 +182,146 @@ function Bills() {
                 matchesSearch &&
                 matchesFilter
             );
-        }
-    );
+        });
+    }, [bills, search, filter]);
 
 
-    // ==========================================
-    // COUNTS
-    // ==========================================
+    // =====================================================
+    // STATISTICS
+    // =====================================================
 
     const totalBills = bills.length;
 
-    const pendingBills =
-        bills.filter(
+    const pendingBills = bills.filter(
+        (bill) =>
+            bill.payment_status === "PENDING"
+    ).length;
+
+    const paidBills = bills.filter(
+        (bill) =>
+            bill.payment_status === "PAID"
+    ).length;
+
+
+    const totalAmount = bills.reduce(
+        (total, bill) =>
+            total +
+            Number(
+                bill.total_amount || 0
+            ),
+        0
+    );
+
+    const pendingAmount = bills
+        .filter(
             (bill) =>
                 bill.payment_status === "PENDING"
-        ).length;
+        )
+        .reduce(
+            (total, bill) =>
+                total +
+                Number(
+                    bill.total_amount || 0
+                ),
+            0
+        );
 
-    const paidBills =
-        bills.filter(
+    const paidAmount = bills
+        .filter(
             (bill) =>
                 bill.payment_status === "PAID"
-        ).length;
+        )
+        .reduce(
+            (total, bill) =>
+                total +
+                Number(
+                    bill.total_amount || 0
+                ),
+            0
+        );
 
+
+    // =====================================================
+    // DATE FORMATTER
+    // =====================================================
+
+    const formatDate = (dateValue) => {
+        if (!dateValue) {
+            return "-";
+        }
+
+        const date = new Date(dateValue);
+
+        if (Number.isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleDateString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }
+        );
+    };
+
+
+    // =====================================================
+    // TIME FORMATTER
+    // =====================================================
+
+    const formatTime = (dateValue) => {
+        if (!dateValue) {
+            return "-";
+        }
+
+        const date = new Date(dateValue);
+
+        if (Number.isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleTimeString(
+            "en-IN",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            }
+        );
+    };
+
+
+    // =====================================================
+    // CURRENCY FORMATTER
+    // =====================================================
+
+    const formatAmount = (amount) => {
+        return Number(amount || 0).toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }
+        );
+    };
+
+
+    // =====================================================
+    // STATUS CLASS
+    // =====================================================
+
+    const getStatusClass = (status) => {
+        return status === "PAID"
+            ? "paid"
+            : "pending";
+    };
+
+
+    // =====================================================
+    // RENDER
+    // =====================================================
 
     return (
         <PharmacistLayout
@@ -187,87 +329,80 @@ function Bills() {
             subtitle="View and manage medicine billing"
         >
 
-            {/* =====================================
+            {/* =================================================
                 STAT CARDS
-            ====================================== */}
+            ================================================= */}
 
             <div className="pharmacist-stats-grid">
 
                 <div className="pharmacist-stat-card">
-
                     <div className="pharmacist-stat-icon">
                         <Receipt size={22} />
                     </div>
 
                     <div className="pharmacist-stat-content">
-
-                        <span>
-                            Total Bills
-                        </span>
+                        <span>Total Bills</span>
 
                         <strong>
                             {totalBills}
                         </strong>
 
+                        <small>
+                            ₹ {formatAmount(totalAmount)}
+                        </small>
                     </div>
-
                 </div>
 
 
                 <div className="pharmacist-stat-card">
-
                     <div className="pharmacist-stat-icon">
                         <Clock size={22} />
                     </div>
 
                     <div className="pharmacist-stat-content">
-
-                        <span>
-                            Pending
-                        </span>
+                        <span>Pending</span>
 
                         <strong>
                             {pendingBills}
                         </strong>
 
+                        <small>
+                            ₹ {formatAmount(pendingAmount)}
+                        </small>
                     </div>
-
                 </div>
 
 
                 <div className="pharmacist-stat-card">
-
                     <div className="pharmacist-stat-icon">
                         <CheckCircle size={22} />
                     </div>
 
                     <div className="pharmacist-stat-content">
-
-                        <span>
-                            Paid
-                        </span>
+                        <span>Paid</span>
 
                         <strong>
                             {paidBills}
                         </strong>
 
+                        <small>
+                            ₹ {formatAmount(paidAmount)}
+                        </small>
                     </div>
-
                 </div>
 
             </div>
 
 
-            {/* =====================================
+            {/* =================================================
                 MESSAGES
-            ====================================== */}
+            ================================================= */}
 
             {error && (
                 <div className="pharmacist-error">
                     {error}
                 </div>
             )}
-
 
             {success && (
                 <div className="pharmacist-success">
@@ -276,9 +411,9 @@ function Bills() {
             )}
 
 
-            {/* =====================================
+            {/* =================================================
                 TOOLBAR
-            ====================================== */}
+            ================================================= */}
 
             <div className="pharmacist-toolbar">
 
@@ -288,13 +423,12 @@ function Bills() {
 
                     <input
                         type="text"
-                        placeholder="Search bill, patient ID or patient name..."
+                        placeholder="Search bill, patient ID, patient name..."
                         value={search}
-                        onChange={(e) =>
-                            setSearch(
-                                e.target.value
-                            )
-                        }
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            clearMessages();
+                        }}
                     />
 
                 </div>
@@ -309,9 +443,10 @@ function Bills() {
                                 ? "pharmacist-filter-button active"
                                 : "pharmacist-filter-button"
                         }
-                        onClick={() =>
-                            setFilter("ALL")
-                        }
+                        onClick={() => {
+                            setFilter("ALL");
+                            clearMessages();
+                        }}
                     >
                         All
                     </button>
@@ -324,9 +459,10 @@ function Bills() {
                                 ? "pharmacist-filter-button active"
                                 : "pharmacist-filter-button"
                         }
-                        onClick={() =>
-                            setFilter("PENDING")
-                        }
+                        onClick={() => {
+                            setFilter("PENDING");
+                            clearMessages();
+                        }}
                     >
                         Pending
                     </button>
@@ -339,31 +475,98 @@ function Bills() {
                                 ? "pharmacist-filter-button active"
                                 : "pharmacist-filter-button"
                         }
-                        onClick={() =>
-                            setFilter("PAID")
-                        }
+                        onClick={() => {
+                            setFilter("PAID");
+                            clearMessages();
+                        }}
                     >
                         Paid
                     </button>
 
                 </div>
 
+
+                <button
+                    type="button"
+                    className="pharmacist-secondary-button"
+                    onClick={() => {
+                        clearMessages();
+                        loadBills();
+                    }}
+                    disabled={loading}
+                >
+                    <RefreshCw
+                        size={16}
+                        className={
+                            loading
+                                ? "pharmacist-spin"
+                                : ""
+                        }
+                    />
+
+                    Refresh
+                </button>
+
             </div>
 
 
-            {/* =====================================
-                BILLS TABLE
-            ====================================== */}
+            {/* =================================================
+                BILL TABLE CARD
+            ================================================= */}
 
             <div className="pharmacist-card">
+
+                {/* =================================================
+                    CARD HEADER
+                ================================================= */}
+
+                <div className="pharmacist-card-header">
+
+                    <div>
+                        <h2>
+                            Pharmacy Bills
+                        </h2>
+
+                        <p>
+                            {filteredBills.length} bill
+                            {filteredBills.length !== 1
+                                ? "s"
+                                : ""}{" "}
+                            found
+                        </p>
+                    </div>
+
+                    <div className="pharmacist-card-header-icon">
+                        <FileText size={20} />
+                    </div>
+
+                </div>
+
+
+                {/* =================================================
+                    LOADING
+                ================================================= */}
 
                 {loading ? (
 
                     <div className="pharmacist-loading">
-                        Loading bills...
+
+                        <RefreshCw
+                            size={22}
+                            className="pharmacist-spin"
+                        />
+
+                        <span>
+                            Loading bills...
+                        </span>
+
                     </div>
 
                 ) : (
+
+                    /* =================================================
+                        TABLE
+                    ================================================= */
 
                     <div className="pharmacist-table-wrapper">
 
@@ -378,6 +581,7 @@ function Bills() {
                                     <th>Appointment</th>
                                     <th>Amount</th>
                                     <th>Date</th>
+                                    <th>Time</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -388,212 +592,274 @@ function Bills() {
                             <tbody>
 
                                 {filteredBills.map(
-                                    (bill) => (
+                                    (bill) => {
 
-                                        <tr
-                                            key={
-                                                bill.id ||
-                                                bill.bill_id
-                                            }
-                                        >
+                                        const isPaid =
+                                            bill.payment_status ===
+                                            "PAID";
 
-                                            {/* Bill ID */}
+                                        const isPaying =
+                                            payingId ===
+                                            bill.bill_id;
 
-                                            <td>
+                                        return (
 
-                                                <strong>
-                                                    {
-                                                        bill.bill_id
-                                                    }
-                                                </strong>
-
-                                            </td>
-
-
-                                            {/* Patient */}
-
-                                            <td>
-                                                {
-                                                    bill.patient_name ||
-                                                    "-"
+                                            <tr
+                                                key={
+                                                    bill.id ||
+                                                    bill.bill_id
                                                 }
-                                            </td>
+                                            >
 
+                                                {/* =====================================
+                                                    BILL ID
+                                                ====================================== */}
 
-                                            {/* Patient ID */}
-
-                                            <td>
-                                                {
-                                                    bill.patient_id ||
-                                                    "-"
-                                                }
-                                            </td>
-
-
-                                            {/* Appointment */}
-
-                                            <td>
-                                                {
-                                                    bill.appointment ||
-                                                    "-"
-                                                }
-                                            </td>
-
-
-                                            {/* Amount */}
-
-                                            <td>
-
-                                                <div className="pharmacist-amount">
-
-                                                    <IndianRupee
-                                                        size={14}
-                                                    />
+                                                <td>
 
                                                     <strong>
                                                         {
-                                                            Number(
-                                                                bill.total_amount ||
-                                                                0
-                                                            ).toFixed(
-                                                                2
-                                                            )
+                                                            bill.bill_id ||
+                                                            "-"
                                                         }
                                                     </strong>
 
-                                                </div>
-
-                                            </td>
+                                                </td>
 
 
-                                            {/* Date */}
+                                                {/* =====================================
+                                                    PATIENT
+                                                ====================================== */}
 
-                                            <td>
-                                                {
-                                                    bill.created_at
-                                                        ? new Date(
-                                                            bill.created_at
-                                                        ).toLocaleDateString()
-                                                        : "-"
-                                                }
-                                            </td>
+                                                <td>
 
+                                                    <div className="pharmacist-patient-cell">
 
-                                            {/* Status */}
+                                                        <div className="pharmacist-patient-icon">
+                                                            <User size={15} />
+                                                        </div>
 
-                                            <td>
-
-                                                <span
-                                                    className={`pharmacist-status-badge ${
-                                                        bill.payment_status ===
-                                                        "PAID"
-                                                            ? "paid"
-                                                            : "pending"
-                                                    }`}
-                                                >
-
-                                                    {bill.payment_status ===
-                                                    "PAID" ? (
-                                                        <>
-                                                            <CheckCircle
-                                                                size={
-                                                                    14
-                                                                }
-                                                            />
-
-                                                            Paid
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Clock
-                                                                size={
-                                                                    14
-                                                                }
-                                                            />
-
-                                                            Pending
-                                                        </>
-                                                    )}
-
-                                                </span>
-
-                                            </td>
-
-
-                                            {/* Action */}
-
-                                            <td>
-
-                                                {bill.payment_status ===
-                                                "PAID" ? (
-
-                                                    <span className="pharmacist-paid-label">
-
-                                                        <CheckCircle
-                                                            size={
-                                                                15
+                                                        <span>
+                                                            {
+                                                                bill.patient_name ||
+                                                                "-"
                                                             }
+                                                        </span>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* =====================================
+                                                    PATIENT ID
+                                                ====================================== */}
+
+                                                <td>
+                                                    {
+                                                        bill.patient_id ||
+                                                        "-"
+                                                    }
+                                                </td>
+
+
+                                                {/* =====================================
+                                                    APPOINTMENT
+                                                ====================================== */}
+
+                                                <td>
+                                                    {
+                                                        bill.appointment ||
+                                                        "-"
+                                                    }
+                                                </td>
+
+
+                                                {/* =====================================
+                                                    AMOUNT
+                                                ====================================== */}
+
+                                                <td>
+
+                                                    <div className="pharmacist-amount">
+
+                                                        <IndianRupee
+                                                            size={14}
                                                         />
 
-                                                        Paid
+                                                        <strong>
+                                                            {
+                                                                formatAmount(
+                                                                    bill.total_amount
+                                                                )
+                                                            }
+                                                        </strong>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* =====================================
+                                                    DATE
+                                                ====================================== */}
+
+                                                <td>
+
+                                                    <div className="pharmacist-date-cell">
+
+                                                        <CalendarDays
+                                                            size={14}
+                                                        />
+
+                                                        <span>
+                                                            {
+                                                                formatDate(
+                                                                    bill.created_at
+                                                                )
+                                                            }
+                                                        </span>
+
+                                                    </div>
+
+                                                </td>
+
+
+                                                {/* =====================================
+                                                    TIME
+                                                ====================================== */}
+
+                                                <td>
+
+                                                    <span>
+                                                        {
+                                                            formatTime(
+                                                                bill.created_at
+                                                            )
+                                                        }
+                                                    </span>
+
+                                                </td>
+
+
+                                                {/* =====================================
+                                                    STATUS
+                                                ====================================== */}
+
+                                                <td>
+
+                                                    <span
+                                                        className={`pharmacist-status-badge ${getStatusClass(
+                                                            bill.payment_status
+                                                        )}`}
+                                                    >
+
+                                                        {isPaid ? (
+
+                                                            <>
+                                                                <CheckCircle
+                                                                    size={14}
+                                                                />
+
+                                                                Paid
+                                                            </>
+
+                                                        ) : (
+
+                                                            <>
+                                                                <Clock
+                                                                    size={14}
+                                                                />
+
+                                                                Pending
+                                                            </>
+
+                                                        )}
 
                                                     </span>
 
-                                                ) : (
+                                                </td>
 
-                                                    <button
-                                                        type="button"
-                                                        className="pharmacist-primary-button pharmacist-small-button"
-                                                        onClick={() =>
-                                                            handlePayment(
-                                                                bill
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            paying
-                                                        }
-                                                    >
 
-                                                        <CheckCircle
-                                                            size={
-                                                                15
+                                                {/* =====================================
+                                                    ACTION
+                                                ====================================== */}
+
+                                                <td>
+
+                                                    {isPaid ? (
+
+                                                        <span className="pharmacist-paid-label">
+
+                                                            <CheckCircle
+                                                                size={15}
+                                                            />
+
+                                                            Paid
+
+                                                        </span>
+
+                                                    ) : (
+
+                                                        <button
+                                                            type="button"
+                                                            className="pharmacist-primary-button pharmacist-small-button"
+                                                            onClick={() =>
+                                                                handlePayment(
+                                                                    bill
+                                                                )
                                                             }
-                                                        />
+                                                            disabled={
+                                                                payingId !==
+                                                                null
+                                                            }
+                                                        >
 
-                                                        {paying
-                                                            ? "Processing..."
-                                                            : "Mark Paid"}
+                                                            <CheckCircle
+                                                                size={15}
+                                                            />
 
-                                                    </button>
+                                                            {isPaying
+                                                                ? "Processing..."
+                                                                : "Mark Paid"}
 
-                                                )}
+                                                        </button>
 
-                                            </td>
+                                                    )}
 
-                                        </tr>
+                                                </td>
 
-                                    )
+                                            </tr>
+
+                                        );
+                                    }
                                 )}
 
 
-                                {/* EMPTY */}
+                                {/* =====================================
+                                    EMPTY STATE
+                                ====================================== */}
 
-                                {filteredBills.length ===
-                                    0 && (
+                                {filteredBills.length === 0 && (
 
                                     <tr>
 
                                         <td
-                                            colSpan="8"
+                                            colSpan="9"
                                             className="pharmacist-empty"
                                         >
 
                                             <Receipt
-                                                size={30}
+                                                size={32}
                                             />
 
+                                            <strong>
+                                                No bills found
+                                            </strong>
+
                                             <span>
-                                                No bills found.
+                                                Try changing your
+                                                search or filter.
                                             </span>
 
                                         </td>

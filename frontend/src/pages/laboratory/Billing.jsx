@@ -17,8 +17,7 @@ function Billing() {
             setLoading(true);
             setError("");
 
-            const response =
-                await getLabBills();
+            const response = await getLabBills();
 
             const data =
                 Array.isArray(response.data)
@@ -47,10 +46,6 @@ function Billing() {
         loadBills();
     }, []);
 
-    // ==================================================
-    // TOTAL
-    // ==================================================
-
     const totalAmount = bills.reduce(
         (total, bill) =>
             total +
@@ -60,13 +55,13 @@ function Billing() {
         0
     );
 
-    // ==================================================
-    // LOADING
-    // ==================================================
+    /* =========================================================
+       LOADING
+    ========================================================= */
 
     if (loading) {
         return (
-            <div className="laboratory-page">
+            <div className="laboratory-page billing-page">
 
                 <div className="laboratory-content">
 
@@ -80,16 +75,18 @@ function Billing() {
         );
     }
 
-    // ==================================================
-    // UI
-    // ==================================================
+    /* =========================================================
+       MAIN UI
+    ========================================================= */
 
     return (
-        <div className="laboratory-page">
+        <div className="laboratory-page billing-page">
 
             <div className="laboratory-content">
 
-                {/* PAGE HEADER */}
+                {/* =================================================
+                   PAGE HEADER
+                ================================================= */}
 
                 <div className="page-header">
 
@@ -112,7 +109,9 @@ function Billing() {
 
                 </div>
 
-                {/* ERROR */}
+                {/* =================================================
+                   ERROR MESSAGE
+                ================================================= */}
 
                 {error && (
                     <div className="error-message">
@@ -120,7 +119,9 @@ function Billing() {
                     </div>
                 )}
 
-                {/* BILLING CARD */}
+                {/* =================================================
+                   BILLING CARD
+                ================================================= */}
 
                 <div className="laboratory-card">
 
@@ -145,6 +146,10 @@ function Billing() {
                         </span>
 
                     </div>
+
+                    {/* =================================================
+                       TABLE
+                    ================================================= */}
 
                     <div className="table-container">
 
@@ -214,7 +219,9 @@ function Billing() {
                                             key={bill.id}
                                         >
 
-                                            {/* BILL ID */}
+                                            {/* =========================
+                                               BILL ID
+                                            ========================= */}
 
                                             <td>
 
@@ -226,58 +233,80 @@ function Billing() {
 
                                             </td>
 
-                                            {/* PATIENT */}
+                                            {/* =========================
+                                               PATIENT
+                                            ========================= */}
 
                                             <td>
+
                                                 {
                                                     bill.patient_name ||
                                                     "N/A"
                                                 }
+
                                             </td>
 
-                                            {/* REQUEST ID */}
+                                            {/* =========================
+                                               REQUEST ID
+                                            ========================= */}
 
                                             <td>
+
                                                 {
                                                     bill.lab_request_id ||
                                                     "N/A"
                                                 }
+
                                             </td>
 
-                                            {/* TEST */}
+                                            {/* =========================
+                                               TEST
+                                            ========================= */}
 
                                             <td>
+
                                                 {
                                                     bill.test_name ||
                                                     "N/A"
                                                 }
+
                                             </td>
 
-                                            {/* TEST CHARGE */}
+                                            {/* =========================
+                                               TEST CHARGE
+                                            ========================= */}
 
                                             <td>
+
                                                 ₹
                                                 {Number(
                                                     bill.test_charge ||
                                                     0
                                                 ).toFixed(2)}
+
                                             </td>
 
-                                            {/* TOTAL */}
+                                            {/* =========================
+                                               TOTAL AMOUNT
+                                            ========================= */}
 
                                             <td>
 
                                                 <strong>
+
                                                     ₹
                                                     {Number(
                                                         bill.total_amount ||
                                                         0
                                                     ).toFixed(2)}
+
                                                 </strong>
 
                                             </td>
 
-                                            {/* PAYMENT STATUS */}
+                                            {/* =========================
+                                               PAYMENT STATUS
+                                            ========================= */}
 
                                             <td>
 
@@ -289,15 +318,19 @@ function Billing() {
                                                             : "status-pending"
                                                     }`}
                                                 >
+
                                                     {
                                                         bill.payment_status ||
                                                         "PENDING"
                                                     }
+
                                                 </span>
 
                                             </td>
 
-                                            {/* DATE */}
+                                            {/* =========================
+                                               DATE
+                                            ========================= */}
 
                                             <td>
 

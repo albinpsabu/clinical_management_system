@@ -461,41 +461,13 @@ class LabBillListCreateView(
         total_amount = test_charge
 
         # -------------------------------------------------
-        # IMPORTANT:
-        # Generate BILL ID here
-        # -------------------------------------------------
-
-        bill_id = (
-            "LB"
-            + timezone.now()
-            .strftime("%Y%m%d%H%M%S")
-            + str(lab_prescription.id)
-        )
-
-        # -------------------------------------------------
-        # Make sure bill ID is unique
-        # -------------------------------------------------
-
-        original_bill_id = bill_id
-
-        counter = 1
-
-        while LabBill.objects.filter(
-            bill_id=bill_id
-        ).exists():
-
-            bill_id = (
-                f"{original_bill_id}{counter}"
-            )
-
-            counter += 1
-
-        # -------------------------------------------------
         # CREATE BILL
         # -------------------------------------------------
 
+        # bill_id is generated automatically
+        # by LabBill.save()
+
         serializer.save(
-            bill_id=bill_id,
             patient=patient,
             test_charge=test_charge,
             total_amount=total_amount,

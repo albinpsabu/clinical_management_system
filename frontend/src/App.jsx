@@ -5,7 +5,28 @@ import {
     Navigate,
 } from "react-router-dom";
 
+
+// ==================================================
+// LOGIN
+// ==================================================
+
 import Login from "./pages/Login";
+
+
+// ==================================================
+// ADMIN PAGES
+// ==================================================
+
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Staff from "./pages/admin/Staff";
+import Departments from "./pages/admin/Departments";
+import Doctors from "./pages/admin/Doctors";
+import Medicines from "./pages/admin/Medicines";
+import LabTests from "./pages/admin/LabTests";
+import Reports from "./pages/admin/Reports";
+import Settings from "./pages/admin/Settings";
+
 
 // ==================================================
 // RECEPTIONIST PAGES
@@ -20,6 +41,7 @@ import Billing from "./pages/receptionist/Billing";
 import Payment from "./pages/receptionist/Payment";
 import BillingHistory from "./pages/receptionist/BillingHistory";
 
+
 // ==================================================
 // DOCTOR PAGES
 // ==================================================
@@ -29,6 +51,7 @@ import DoctorAppointments from "./pages/doctor/DoctorAppointments";
 import DoctorPatientProfile from "./pages/doctor/DoctorPatientProfile";
 import DoctorConsultation from "./pages/doctor/DoctorConsultation";
 
+
 // ==================================================
 // LABORATORY PAGES
 // ==================================================
@@ -37,20 +60,22 @@ import LaboratoryDashboard from "./pages/laboratory/LabDashboard.jsx";
 import TestManagement from "./pages/laboratory/TestManagement.jsx";
 import LaboratoryBilling from "./pages/laboratory/Billing.jsx";
 import LaboratoryLayout from "./components/laboratory/LaboratoryLayout";
-import LabTests from "./pages/laboratory/LabTests";
+import LaboratoryTests from "./pages/laboratory/LabTests";
 import LaboratorySales from "./pages/laboratory/Sales";
+
 
 // ==================================================
 // PHARMACIST PAGES
 // ==================================================
 
 import PharmacistDashboard from "./pages/pharmacist/PharmacistDashboard";
-import Medicines from "./pages/pharmacist/Medicines";
+import PharmacistMedicines from "./pages/pharmacist/Medicines";
 import PharmacistPatients from "./pages/pharmacist/Patients";
 import PatientPrescriptions from "./pages/pharmacist/PatientPrescriptions";
 import Dispense from "./pages/pharmacist/Dispense";
 import Bills from "./pages/pharmacist/Bills";
 import SalesReports from "./pages/pharmacist/SalesReports";
+
 
 // ==================================================
 // STYLES
@@ -59,73 +84,131 @@ import SalesReports from "./pages/pharmacist/SalesReports";
 import "./App.css";
 import "./doctor.css";
 import "./styles/pharmacist.css";
+import "./styles/admin.css";
+import "./styles/receptionist.css";
+
 
 // ==================================================
 // PROTECTED ROUTE
 // ==================================================
 
-function ProtectedRoute({ children, role }) {
-    const token = localStorage.getItem("access_token");
-    const userRole = localStorage.getItem("role");
+function ProtectedRoute({
+    children,
+    role,
+}) {
 
-    // User is not logged in
+    const token =
+        localStorage.getItem(
+            "access_token"
+        );
+
+    const userRole =
+        localStorage.getItem(
+            "role"
+        );
+
+
+    // --------------------------------------------------
+    // USER IS NOT LOGGED IN
+    // --------------------------------------------------
+
     if (!token) {
-        return <Navigate to="/login" replace />;
+
+        return (
+            <Navigate
+                to="/login"
+                replace
+            />
+        );
+
     }
 
-    // User does not have the required role
-    if (role && userRole !== role) {
-        return <Navigate to="/unauthorized" replace />;
+
+    // --------------------------------------------------
+    // USER DOES NOT HAVE REQUIRED ROLE
+    // --------------------------------------------------
+
+    if (
+        role &&
+        userRole !== role
+    ) {
+
+        return (
+            <Navigate
+                to="/unauthorized"
+                replace
+            />
+        );
+
     }
+
 
     return children;
+
 }
+
 
 // ==================================================
 // UNAUTHORIZED PAGE
 // ==================================================
 
 function Unauthorized() {
+
     return (
+
         <div className="unauthorized-page">
+
             <div className="unauthorized-box">
 
                 <h2>
                     Access Denied
                 </h2>
 
+
                 <p>
                     You do not have permission
                     to access this page.
                 </p>
 
+
                 <button
                     onClick={() => {
+
                         localStorage.clear();
-                        window.location.href = "/login";
+
+                        window.location.href =
+                            "/login";
+
                     }}
                 >
                     Go to Login
                 </button>
 
             </div>
+
         </div>
+
     );
+
 }
+
 
 // ==================================================
 // APP
 // ==================================================
 
 function App() {
+
     return (
+
         <BrowserRouter>
 
             <Routes>
 
-                {/* ==============================================
+
+                {/* ==================================================
                     HOME
-                ============================================== */}
+                ================================================== */}
 
                 <Route
                     path="/"
@@ -137,18 +220,22 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
+
+                {/* ==================================================
                     LOGIN
-                ============================================== */}
+                ================================================== */}
 
                 <Route
                     path="/login"
-                    element={<Login />}
+                    element={
+                        <Login />
+                    }
                 />
 
-                {/* ==============================================
+
+                {/* ==================================================
                     UNAUTHORIZED
-                ============================================== */}
+                ================================================== */}
 
                 <Route
                     path="/unauthorized"
@@ -157,13 +244,110 @@ function App() {
                     }
                 />
 
+
+                {/* ==================================================
+                    ADMIN
+                ================================================== */}
+
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute
+                            role="ADMIN"
+                        >
+                            <AdminLayout />
+                        </ProtectedRoute>
+                    }
+                >
+
+                    {/* ADMIN DASHBOARD */}
+
+                    <Route
+                        index
+                        element={
+                            <AdminDashboard />
+                        }
+                    />
+
+
+                    {/* ADMIN STAFF */}
+
+                    <Route
+                        path="staff"
+                        element={
+                            <Staff />
+                        }
+                    />
+
+
+                    {/* ADMIN DEPARTMENTS */}
+
+                    <Route
+                        path="departments"
+                        element={
+                            <Departments />
+                        }
+                    />
+
+
+                    {/* ADMIN DOCTORS */}
+
+                    <Route
+                        path="doctors"
+                        element={
+                            <Doctors />
+                        }
+                    />
+
+
+                    {/* ADMIN MEDICINES */}
+
+                    <Route
+                        path="medicines"
+                        element={
+                            <Medicines />
+                        }
+                    />
+
+
+                    {/* ADMIN LAB TESTS */}
+
+                    <Route
+                        path="lab-tests"
+                        element={
+                            <LabTests />
+                        }
+                    />
+
+
+                    {/* ADMIN REPORTS */}
+
+                    <Route
+                        path="reports"
+                        element={
+                            <Reports />
+                        }
+                    />
+
+
+                    {/* ADMIN SETTINGS */}
+
+                    <Route
+                        path="settings"
+                        element={
+                            <Settings />
+                        }
+                    />
+
+                </Route>
+
+
                 {/* ==================================================
                     RECEPTIONIST
                 ================================================== */}
 
-                {/* ==============================================
-                    RECEPTIONIST DASHBOARD
-                ============================================== */}
+
+                {/* RECEPTIONIST DASHBOARD */}
 
                 <Route
                     path="/receptionist"
@@ -176,9 +360,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    PATIENTS
-                ============================================== */}
+
+                {/* RECEPTIONIST PATIENTS */}
 
                 <Route
                     path="/receptionist/patients"
@@ -191,9 +374,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    PATIENT DETAILS
-                ============================================== */}
+
+                {/* RECEPTIONIST PATIENT DETAILS */}
 
                 <Route
                     path="/receptionist/patients/:patientId"
@@ -206,9 +388,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    APPOINTMENTS - VIEW / LIST
-                ============================================== */}
+
+                {/* RECEPTIONIST APPOINTMENTS */}
 
                 <Route
                     path="/receptionist/appointments"
@@ -221,9 +402,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    CREATE APPOINTMENT
-                ============================================== */}
+
+                {/* CREATE APPOINTMENT */}
 
                 <Route
                     path="/receptionist/appointments/create"
@@ -236,9 +416,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    BILLING
-                ============================================== */}
+
+                {/* RECEPTIONIST BILLING */}
 
                 <Route
                     path="/receptionist/billing"
@@ -251,9 +430,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    PAYMENT
-                ============================================== */}
+
+                {/* RECEPTIONIST PAYMENT */}
 
                 <Route
                     path="/receptionist/payment/:billId"
@@ -266,9 +444,8 @@ function App() {
                     }
                 />
 
-                {/* ==============================================
-                    BILLING HISTORY
-                ============================================== */}
+
+                {/* RECEPTIONIST BILLING HISTORY */}
 
                 <Route
                     path="/receptionist/bills"
@@ -281,61 +458,67 @@ function App() {
                     }
                 />
 
+
                 {/* ==================================================
                     DOCTOR
                 ================================================== */}
 
-                {/* ==============================================
-                    DOCTOR DASHBOARD
-                ============================================== */}
+
+                {/* DOCTOR DASHBOARD */}
 
                 <Route
                     path="/doctor"
                     element={
-                        <ProtectedRoute role="DOCTOR">
+                        <ProtectedRoute
+                            role="DOCTOR"
+                        >
                             <DoctorDashboard />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    DOCTOR APPOINTMENTS
-                ============================================== */}
+
+                {/* DOCTOR APPOINTMENTS */}
 
                 <Route
                     path="/doctor/appointments"
                     element={
-                        <ProtectedRoute role="DOCTOR">
+                        <ProtectedRoute
+                            role="DOCTOR"
+                        >
                             <DoctorAppointments />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    DOCTOR PATIENT PROFILE
-                ============================================== */}
+
+                {/* DOCTOR PATIENT PROFILE */}
 
                 <Route
                     path="/doctor/appointments/:appointmentId/patient"
                     element={
-                        <ProtectedRoute role="DOCTOR">
+                        <ProtectedRoute
+                            role="DOCTOR"
+                        >
                             <DoctorPatientProfile />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    DOCTOR CONSULTATION
-                ============================================== */}
+
+                {/* DOCTOR CONSULTATION */}
 
                 <Route
                     path="/doctor/appointments/:appointmentId/consult"
                     element={
-                        <ProtectedRoute role="DOCTOR">
+                        <ProtectedRoute
+                            role="DOCTOR"
+                        >
                             <DoctorConsultation />
                         </ProtectedRoute>
                     }
                 />
+
 
                 {/* ==================================================
                     LABORATORY
@@ -344,142 +527,172 @@ function App() {
                 <Route
                     path="/laboratory"
                     element={
-                        <ProtectedRoute role="LAB_TECHNICIAN">
+                        <ProtectedRoute
+                            role="LAB_TECHNICIAN"
+                        >
                             <LaboratoryLayout />
                         </ProtectedRoute>
                     }
                 >
 
-                    {/* Laboratory Dashboard */}
+                    {/* LABORATORY DASHBOARD */}
+
                     <Route
                         index
-                        element={<LaboratoryDashboard />}
+                        element={
+                            <LaboratoryDashboard />
+                        }
                     />
 
-                    {/* Laboratory Tests */}
+
+                    {/* LABORATORY TESTS */}
+
                     <Route
                         path="tests"
-                        element={<LabTests />}
+                        element={
+                            <LaboratoryTests />
+                        }
                     />
 
-                    {/* Test Management */}
+
+                    {/* TEST MANAGEMENT */}
+
                     <Route
                         path="test-management"
-                        element={<TestManagement />}
+                        element={
+                            <TestManagement />
+                        }
                     />
 
-                    {/* Laboratory Billing */}
+
+                    {/* LABORATORY BILLING */}
+
                     <Route
                         path="billing"
-                        element={<LaboratoryBilling />}
+                        element={
+                            <LaboratoryBilling />
+                        }
                     />
 
-                    {/* Laboratory Sales */}
+
+                    {/* LABORATORY SALES */}
+
                     <Route
                         path="sales"
-                        element={<LaboratorySales />}
+                        element={
+                            <LaboratorySales />
+                        }
                     />
 
                 </Route>
+
 
                 {/* ==================================================
                     PHARMACIST
                 ================================================== */}
 
-                {/* ==============================================
-                    PHARMACIST DASHBOARD
-                ============================================== */}
+
+                {/* PHARMACIST DASHBOARD */}
 
                 <Route
                     path="/pharmacist"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
                             <PharmacistDashboard />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    MEDICINES
-                ============================================== */}
+
+                {/* PHARMACIST MEDICINES */}
 
                 <Route
                     path="/pharmacist/medicines"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
-                            <Medicines />
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
+                            <PharmacistMedicines />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    PATIENTS
-                ============================================== */}
+
+                {/* PHARMACIST PATIENTS */}
 
                 <Route
                     path="/pharmacist/patients"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
                             <PharmacistPatients />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    PATIENT PRESCRIPTIONS
-                ============================================== */}
+
+                {/* PATIENT PRESCRIPTIONS */}
 
                 <Route
                     path="/pharmacist/patients/:patientId"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
                             <PatientPrescriptions />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    DISPENSE MEDICINE
-                ============================================== */}
+
+                {/* DISPENSE MEDICINE */}
 
                 <Route
                     path="/pharmacist/dispense/:prescriptionId"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
                             <Dispense />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    BILLS
-                ============================================== */}
+
+                {/* PHARMACIST BILLS */}
 
                 <Route
                     path="/pharmacist/bills"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
                             <Bills />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
-                    SALES REPORTS
-                ============================================== */}
+
+                {/* PHARMACIST SALES REPORTS */}
 
                 <Route
                     path="/pharmacist/reports"
                     element={
-                        <ProtectedRoute role="PHARMACIST">
+                        <ProtectedRoute
+                            role="PHARMACIST"
+                        >
                             <SalesReports />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ==============================================
+
+                {/* ==================================================
                     UNKNOWN URL
-                ============================================== */}
+                ================================================== */}
 
                 <Route
                     path="*"
@@ -491,10 +704,14 @@ function App() {
                     }
                 />
 
+
             </Routes>
 
         </BrowserRouter>
+
     );
+
 }
+
 
 export default App;

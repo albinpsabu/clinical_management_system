@@ -1,3 +1,4 @@
+
 from rest_framework import serializers
 
 from .models import (
@@ -39,6 +40,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "consultation_id",
             "patient",
             "patient_name",
             "created_at",
@@ -66,7 +68,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
                 })
 
             # Make sure the appointment belongs
-            # to the logged-in doctor
+            # to the logged-in doctor.
             if appointment.doctor != doctor:
 
                 raise serializers.ValidationError({
@@ -77,7 +79,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
                 })
 
             # Consultation can only be created
-            # for a booked appointment
+            # for a booked appointment.
             if appointment.status != "BOOKED":
 
                 raise serializers.ValidationError({
@@ -87,7 +89,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
                     )
                 })
 
-            # Automatically get patient from appointment
+            # Automatically get patient from appointment.
             attrs["patient"] = appointment.patient
 
         return attrs
@@ -135,6 +137,7 @@ class MedicinePrescriptionSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "prescription_id",
             "consultation_id",
             "patient_name",
             "medicine_name",
@@ -145,6 +148,7 @@ class MedicinePrescriptionSerializer(serializers.ModelSerializer):
 # ============================================================
 # LAB PRESCRIPTION SERIALIZER
 # ============================================================
+
 class LabPrescriptionSerializer(serializers.ModelSerializer):
 
     patient_name = serializers.CharField(
@@ -183,9 +187,11 @@ class LabPrescriptionSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "id",
+            "lab_request_id",
             "consultation_id",
             "patient_name",
             "test_name",
             "created_at",
             "updated_at",
         ]
+

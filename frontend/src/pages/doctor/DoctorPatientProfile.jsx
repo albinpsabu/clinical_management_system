@@ -28,14 +28,19 @@ function DoctorPatientProfile() {
     const navigate = useNavigate();
     const { appointmentId } = useParams();
 
-    // Appointment passed from the appointments/dashboard page.
-    // This is only used as the initial value.
+
+    // =========================================================
+    // APPOINTMENT FROM ROUTER STATE
+    // =========================================================
+
     const locationAppointment =
         location.state?.appointment || null;
+
 
     const [appointment, setAppointment] = useState(
         locationAppointment
     );
+
 
     const [patient, setPatient] = useState(
         locationAppointment?.patient_details ||
@@ -43,27 +48,193 @@ function DoctorPatientProfile() {
         null
     );
 
+
     const [loading, setLoading] = useState(
         !patient
     );
 
+
     const [error, setError] = useState("");
 
 
+    // =========================================================
+    // FORMAT DATE
+    // =========================================================
+
+    const formatDate = (dateValue) => {
+
+        if (!dateValue) {
+            return "-";
+        }
+
+        try {
+
+            const date = new Date(dateValue);
+
+            if (Number.isNaN(date.getTime())) {
+                return dateValue;
+            }
+
+            return date.toLocaleDateString(
+                "en-IN",
+                {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                }
+            );
+
+        } catch {
+
+            return dateValue;
+
+        }
+    };
+
+
+    // =========================================================
+    // FORMAT TIME
+    // =========================================================
+
+    const formatTime = (timeValue) => {
+
+        if (!timeValue) {
+            return "-";
+        }
+
+        try {
+
+            /*
+             * Backend may return:
+             *
+             * 10:30:00
+             *
+             * or
+             *
+             * 10:30
+             */
+
+            const parts =
+                String(timeValue).split(":");
+
+            const hours =
+                parseInt(parts[0], 10);
+
+            const minutes =
+                parseInt(parts[1] || "0", 10);
+
+            if (
+                Number.isNaN(hours) ||
+                Number.isNaN(minutes)
+            ) {
+                return timeValue;
+            }
+
+            const date = new Date();
+
+            date.setHours(
+                hours,
+                minutes,
+                0,
+                0
+            );
+
+            return date.toLocaleTimeString(
+                "en-IN",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                }
+            );
+
+        } catch {
+
+            return timeValue;
+
+        }
+    };
+
+
+    // =========================================================
+    // FORMAT APPOINTMENT TYPE
+    // =========================================================
+
+    const formatAppointmentType = (type) => {
+
+        if (!type) {
+            return "-";
+        }
+
+        switch (type) {
+
+            case "WALK_IN":
+                return "Walk-in";
+
+            case "PRIOR_BOOKING":
+                return "Prior Booking";
+
+            default:
+                return String(type)
+                    .replaceAll("_", " ")
+                    .toLowerCase()
+                    .replace(
+                        /\b\w/g,
+                        (char) => char.toUpperCase()
+                    );
+
+        }
+    };
+
+
+    // =========================================================
+    // FORMAT APPOINTMENT STATUS
+    // =========================================================
+
+    const formatStatus = (status) => {
+
+        if (!status) {
+            return "-";
+        }
+
+        switch (status) {
+
+            case "BOOKED":
+                return "CONFIRMED";
+
+            case "CONSULTED":
+                return "CONSULTED";
+
+            case "CANCELLED":
+                return "CANCELLED";
+
+            default:
+                return String(status)
+                    .replaceAll("_", " ")
+                    .toLowerCase()
+                    .replace(
+                        /\b\w/g,
+                        (char) => char.toUpperCase()
+                    );
+
+        }
+    };
+
+
+    // =========================================================
+    // LOAD LATEST APPOINTMENT
+    // =========================================================
+
     /*
-    =========================================================
-    LOAD LATEST APPOINTMENT
-    =========================================================
-
-    The appointment object passed through React Router state
-    can be old.
-
-    Therefore, whenever this page opens, we request the
-    appointments from the backend and find the appointment
-    using the URL appointmentId.
-
-    This ensures that the status is always current.
-    */
+     * The appointment object passed through React Router
+     * state can be old.
+     *
+     * Therefore, whenever this page opens, we request the
+     * appointments from the backend and find the appointment
+     * using the URL appointmentId.
+     *
+     * This ensures that the appointment status is current.
+     */
 
     useEffect(() => {
 
@@ -74,10 +245,12 @@ function DoctorPatientProfile() {
                 const response =
                     await getDoctorAppointments();
 
+
                 const data =
                     Array.isArray(response.data)
                         ? response.data
                         : response.data?.results || [];
+
 
                 const currentAppointment =
                     data.find(
@@ -85,6 +258,7 @@ function DoctorPatientProfile() {
                             String(item.id) ===
                             String(appointmentId)
                     );
+
 
                 if (currentAppointment) {
 
@@ -105,41 +279,47 @@ function DoctorPatientProfile() {
 
         };
 
+
         if (appointmentId) {
+
             loadAppointment();
+
         }
 
     }, [appointmentId]);
 
 
-    /*
-    =========================================================
-    LOAD PATIENT
-    =========================================================
-    */
+    // =========================================================
+    // LOAD PATIENT
+    // =========================================================
 
     useEffect(() => {
 
         const loadPatient = async () => {
 
             /*
-            Backend expects patient_id such as PAT001.
-            */
+             * Backend expects patient_id such as:
+             *
+             * PAT001
+             */
 
             const patientId =
                 appointment?.patient_id;
 
+
             /*
-            If patient information is already available,
-            there is no need to request it again.
-            */
+             * If patient information is already available,
+             * there is no need to request it again.
+             */
 
             if (!patientId || patient) {
 
                 setLoading(false);
+
                 return;
 
             }
+
 
             try {
 
@@ -148,18 +328,20 @@ function DoctorPatientProfile() {
                         patientId
                     );
 
-                /*
-                Backend returns:
 
-                {
-                    patient: {...},
-                    consultations: [...]
-                }
-                */
+                /*
+                 * Backend returns:
+                 *
+                 * {
+                 *     patient: {...},
+                 *     consultations: [...]
+                 * }
+                 */
 
                 setPatient(
                     response.data?.patient || null
                 );
+
 
             } catch (err) {
 
@@ -168,9 +350,11 @@ function DoctorPatientProfile() {
                     err.response?.data || err
                 );
 
+
                 setError(
                     "Unable to load patient information."
                 );
+
 
             } finally {
 
@@ -180,16 +364,15 @@ function DoctorPatientProfile() {
 
         };
 
+
         loadPatient();
 
     }, [appointment, patient]);
 
 
-    /*
-    =========================================================
-    LOADING
-    =========================================================
-    */
+    // =========================================================
+    // LOADING
+    // =========================================================
 
     if (loading) {
 
@@ -212,11 +395,9 @@ function DoctorPatientProfile() {
     }
 
 
-    /*
-    =========================================================
-    PAGE
-    =========================================================
-    */
+    // =========================================================
+    // PAGE
+    // =========================================================
 
     return (
 
@@ -225,7 +406,9 @@ function DoctorPatientProfile() {
             subtitle="Review patient information before consultation."
         >
 
-            {/* ERROR */}
+            {/* =================================================
+                ERROR
+            ================================================= */}
 
             {error && (
 
@@ -287,7 +470,9 @@ function DoctorPatientProfile() {
                 <div className="doctor-patient-info-grid">
 
 
-                    {/* AGE */}
+                    {/* =================================================
+                       AGE
+                    ================================================= */}
 
                     <div className="doctor-info-item">
 
@@ -310,7 +495,9 @@ function DoctorPatientProfile() {
                     </div>
 
 
-                    {/* GENDER */}
+                    {/* =================================================
+                       GENDER
+                    ================================================= */}
 
                     <div className="doctor-info-item">
 
@@ -333,7 +520,9 @@ function DoctorPatientProfile() {
                     </div>
 
 
-                    {/* BLOOD GROUP */}
+                    {/* =================================================
+                       BLOOD GROUP
+                    ================================================= */}
 
                     <div className="doctor-info-item">
 
@@ -356,7 +545,9 @@ function DoctorPatientProfile() {
                     </div>
 
 
-                    {/* PHONE */}
+                    {/* =================================================
+                       PHONE
+                    ================================================= */}
 
                     <div className="doctor-info-item">
 
@@ -379,7 +570,9 @@ function DoctorPatientProfile() {
                     </div>
 
 
-                    {/* DATE OF BIRTH */}
+                    {/* =================================================
+                       DATE OF BIRTH
+                    ================================================= */}
 
                     <div className="doctor-info-item">
 
@@ -393,7 +586,9 @@ function DoctorPatientProfile() {
 
                             <strong>
 
-                                {patient?.dob || "-"}
+                                {formatDate(
+                                    patient?.dob
+                                )}
 
                             </strong>
 
@@ -402,7 +597,9 @@ function DoctorPatientProfile() {
                     </div>
 
 
-                    {/* ADDRESS */}
+                    {/* =================================================
+                       ADDRESS
+                    ================================================= */}
 
                     <div className="doctor-info-item">
 
@@ -441,7 +638,9 @@ function DoctorPatientProfile() {
                     <div className="doctor-summary-grid">
 
 
-                        {/* DATE */}
+                        {/* =================================================
+                           DATE
+                        ================================================= */}
 
                         <div>
 
@@ -451,15 +650,18 @@ function DoctorPatientProfile() {
 
                             <strong>
 
-                                {appointment?.appointment_date ||
-                                    "-"}
+                                {formatDate(
+                                    appointment?.appointment_date
+                                )}
 
                             </strong>
 
                         </div>
 
 
-                        {/* TIME */}
+                        {/* =================================================
+                           TIME
+                        ================================================= */}
 
                         <div>
 
@@ -469,15 +671,18 @@ function DoctorPatientProfile() {
 
                             <strong>
 
-                                {appointment?.appointment_time ||
-                                    "-"}
+                                {formatTime(
+                                    appointment?.appointment_time
+                                )}
 
                             </strong>
 
                         </div>
 
 
-                        {/* TYPE */}
+                        {/* =================================================
+                           TYPE
+                        ================================================= */}
 
                         <div>
 
@@ -487,15 +692,18 @@ function DoctorPatientProfile() {
 
                             <strong>
 
-                                {appointment?.appointment_type ||
-                                    "-"}
+                                {formatAppointmentType(
+                                    appointment?.appointment_type
+                                )}
 
                             </strong>
 
                         </div>
 
 
-                        {/* STATUS */}
+                        {/* =================================================
+                           STATUS
+                        ================================================= */}
 
                         <div>
 
@@ -505,8 +713,9 @@ function DoctorPatientProfile() {
 
                             <strong>
 
-                                {appointment?.status ||
-                                    "-"}
+                                {formatStatus(
+                                    appointment?.status
+                                )}
 
                             </strong>
 
@@ -524,7 +733,9 @@ function DoctorPatientProfile() {
                 <div className="doctor-profile-actions">
 
 
-                    {/* BACK */}
+                    {/* =================================================
+                       BACK
+                    ================================================= */}
 
                     <button
                         type="button"
@@ -537,7 +748,9 @@ function DoctorPatientProfile() {
                     </button>
 
 
-                    {/* CONSULT */}
+                    {/* =================================================
+                       CONSULT
+                    ================================================= */}
 
                     <button
                         type="button"

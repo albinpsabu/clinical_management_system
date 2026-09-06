@@ -6,7 +6,11 @@ from doctor.models import MedicinePrescription
 
 
 class MedicineDispensing(models.Model):
-    dispensing_id = models.CharField(max_length=20, unique=True)
+    dispensing_id = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True
+    )
 
     patient = models.ForeignKey(
         Patient,
@@ -46,6 +50,19 @@ class MedicineDispensing(models.Model):
 
     dispensed_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if not self.dispensing_id:
+            last_dispensing = MedicineDispensing.objects.order_by("-id").first()
+
+            if last_dispensing:
+                number = last_dispensing.id + 1
+            else:
+                number = 1
+
+            self.dispensing_id = f"DISP{number:06d}"
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.dispensing_id} - {self.patient.name}"
 
@@ -56,7 +73,11 @@ class MedicineBill(models.Model):
         ("PAID", "Paid"),
     ]
 
-    bill_id = models.CharField(max_length=20, unique=True)
+    bill_id = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True
+    )
 
     patient = models.ForeignKey(
         Patient,
@@ -82,6 +103,19 @@ class MedicineBill(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.bill_id:
+            last_bill = MedicineBill.objects.order_by("-id").first()
+
+            if last_bill:
+                number = last_bill.id + 1
+            else:
+                number = 1
+
+            self.bill_id = f"MBILL{number:06d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.bill_id} - {self.patient.name}"

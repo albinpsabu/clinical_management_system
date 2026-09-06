@@ -1,9 +1,11 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (
     StaffListCreateView,
+    StaffDetailView,
     DoctorListCreateView,
+    DoctorDetailView,
     DepartmentViewSet,
     MedicineViewSet,
     LabTestViewSet,
@@ -32,6 +34,11 @@ router.register(
 
 
 urlpatterns = [
+
+    # ========================================================
+    # STAFF
+    # ========================================================
+
     path(
         "staff/",
         StaffListCreateView.as_view(),
@@ -39,10 +46,35 @@ urlpatterns = [
     ),
 
     path(
+        "staff/<int:pk>/",
+        StaffDetailView.as_view(),
+        name="staff-detail"
+    ),
+
+
+    # ========================================================
+    # DOCTORS
+    # ========================================================
+
+    path(
         "doctors/",
         DoctorListCreateView.as_view(),
         name="doctors"
     ),
-]
 
-urlpatterns += router.urls
+    path(
+        "doctors/<int:pk>/",
+        DoctorDetailView.as_view(),
+        name="doctor-detail"
+    ),
+
+
+    # ========================================================
+    # VIEWSETS
+    # ========================================================
+
+    path(
+        "",
+        include(router.urls)
+    ),
+]

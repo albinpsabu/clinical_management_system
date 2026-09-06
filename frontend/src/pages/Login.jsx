@@ -18,77 +18,192 @@ function Login() {
 
         try {
             const response = await api.post("/accounts/login/", {
-                username,
-                password,
+                username: username.trim(),
+                password: password,
             });
 
             const data = response.data;
 
-            console.log("Login response:", data);
+            console.log("LOGIN RESPONSE:", data);
+            console.log("USER:", data.user);
+            console.log("ROLE FROM SERVER:", data.user?.role);
 
-            // Save authentication information
+            // =====================================================
+            // VALIDATE RESPONSE
+            // =====================================================
+
+            if (!data.access || !data.refresh || !data.user) {
+                setError("Invalid response received from server.");
+                return;
+            }
+
+            // =====================================================
+            // GET ROLE
+            // =====================================================
+
+            const role = String(data.user.role || "")
+                .trim()
+                .toUpperCase();
+
+            const loggedInUsername = data.user.username;
+
+            console.log("FINAL ROLE:", role);
+            console.log("USERNAME:", loggedInUsername);
+
+            // =====================================================
+            // SAVE LOGIN INFORMATION
+            // =====================================================
+
             localStorage.setItem("access_token", data.access);
             localStorage.setItem("refresh_token", data.refresh);
-            localStorage.setItem("role", data.user.role);
-            localStorage.setItem("username", data.user.username);
+            localStorage.setItem("role", role);
+            localStorage.setItem("username", loggedInUsername);
 
-            // Redirect according to user role
-            switch (data.user.role) {
-                case "RECEPTIONIST":
-                    navigate("/receptionist");
-                    break;
+            console.log(
+                "ACCESS TOKEN SAVED:",
+                !!localStorage.getItem("access_token")
+            );
 
-                case "DOCTOR":
-                    navigate("/doctor");
-                    break;
+            console.log(
+                "ROLE SAVED:",
+                localStorage.getItem("role")
+            );
 
-                case "LAB_TECHNICIAN":
-                    navigate("/laboratory");
-                    break;
+            console.log(
+                "USERNAME SAVED:",
+                localStorage.getItem("username")
+            );
 
-                case "PHARMACIST":
-                    navigate("/pharmacist");
-                    break;
+            // =====================================================
+            // ADMIN
+            // =====================================================
 
-                case "ADMIN":
-                    navigate("/admin");
-                    break;
+            if (role === "ADMIN") {
+                console.log("ADMIN ROLE DETECTED");
+                console.log("REDIRECTING TO /admin");
 
-                default:
-                    localStorage.clear();
-                    setError("Unknown user role.");
+                /*
+                 * Use browser navigation here.
+                 *
+                 * The authentication information has already been
+                 * saved to localStorage, so the Admin page can read it
+                 * after the reload.
+                 */
+                window.location.replace("/admin");
+
+                return;
             }
+
+            // =====================================================
+            // RECEPTIONIST
+            // =====================================================
+
+            if (role === "RECEPTIONIST") {
+                console.log("REDIRECTING TO /receptionist");
+
+                window.location.replace("/receptionist");
+
+                return;
+            }
+
+            // =====================================================
+            // DOCTOR
+            // =====================================================
+
+            if (role === "DOCTOR") {
+                console.log("REDIRECTING TO /doctor");
+
+                window.location.replace("/doctor");
+
+                return;
+            }
+
+            // =====================================================
+            // LAB TECHNICIAN
+            // =====================================================
+
+            if (role === "LAB_TECHNICIAN") {
+                console.log("REDIRECTING TO /laboratory");
+
+                window.location.replace("/laboratory");
+
+                return;
+            }
+
+            // =====================================================
+            // PHARMACIST
+            // =====================================================
+
+            if (role === "PHARMACIST") {
+                console.log("REDIRECTING TO /pharmacist");
+
+                window.location.replace("/pharmacist");
+
+                return;
+            }
+
+            // =====================================================
+            // UNKNOWN ROLE
+            // =====================================================
+
+            console.error("UNKNOWN ROLE:", role);
+
+            localStorage.clear();
+
+            setError(
+                `Unknown user role: ${role || "No role received"}`
+            );
+
         } catch (error) {
+
             console.error("LOGIN ERROR:", error);
 
             if (error.response) {
-                console.log("Status:", error.response.status);
-                console.log("Response:", error.response.data);
+
+                console.log(
+                    "STATUS:",
+                    error.response.status
+                );
+
+                console.log(
+                    "RESPONSE:",
+                    error.response.data
+                );
 
                 setError(
                     error.response.data?.detail ||
                     error.response.data?.error ||
+                    error.response.data?.message ||
                     `Login failed (${error.response.status})`
                 );
+
             } else if (error.request) {
-                console.log("No response received from Django.");
-                console.log("Request:", error.request);
+
+                console.log(
+                    "NO RESPONSE RECEIVED FROM DJANGO"
+                );
 
                 setError(
                     "Django server is not responding. Check that the backend is running on port 8000."
                 );
+
             } else {
+
                 console.log(
-                    "Request setup error:",
+                    "REQUEST ERROR:",
                     error.message
                 );
 
-                setError(`Request error: ${error.message}`);
+                setError(
+                    `Request error: ${error.message}`
+                );
             }
+
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="login-container">
@@ -96,26 +211,30 @@ function Login() {
             <div className="login-card">
 
                 <div className="login-brand">
+
                     <div className="login-brand-icon">
                         +
                     </div>
 
                     <div>
-                        <h1>Clinical Management System</h1>
-                        <p>Healthcare management made simple</p>
+                        <h1>
+                            Clinical Management System
+                        </h1>
                     </div>
+
                 </div>
 
+
                 <div className="login-heading">
-                    <h2>Welcome back</h2>
-                    <p>Sign in to continue to your account</p>
                 </div>
+
 
                 {error && (
                     <div className="login-error">
                         {error}
                     </div>
                 )}
+
 
                 <form onSubmit={handleSubmit}>
 
@@ -139,6 +258,7 @@ function Login() {
 
                     </div>
 
+
                     <div className="form-group">
 
                         <label htmlFor="password">
@@ -159,11 +279,13 @@ function Login() {
 
                     </div>
 
+
                     <button
                         className="login-button"
                         type="submit"
                         disabled={loading}
                     >
+
                         {loading ? (
                             <>
                                 <span className="login-spinner"></span>
@@ -172,12 +294,16 @@ function Login() {
                         ) : (
                             "Sign in"
                         )}
+
                     </button>
 
                 </form>
 
+
                 <div className="login-footer">
-                    <span>Secure clinical access</span>
+                    <span>
+                        Secure clinical access
+                    </span>
                 </div>
 
             </div>

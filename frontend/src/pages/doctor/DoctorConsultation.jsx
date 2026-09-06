@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+    useLocation,
+    useNavigate,
+    useParams,
+} from "react-router-dom";
 
 import {
     Plus,
@@ -21,66 +25,114 @@ import {
 
 
 function DoctorConsultation() {
+
     const location = useLocation();
     const navigate = useNavigate();
     const { appointmentId } = useParams();
 
-    const appointment = location.state?.appointment;
-    const patient = location.state?.patient;
+
+    // =========================================================
+    // APPOINTMENT / PATIENT
+    // =========================================================
+
+    const appointment =
+        location.state?.appointment || null;
+
+    const patient =
+        location.state?.patient || null;
+
+
+    // =========================================================
+    // OPTIONS
+    // =========================================================
 
     const [medicines, setMedicines] = useState([]);
     const [labTests, setLabTests] = useState([]);
 
-    const [loadingOptions, setLoadingOptions] = useState(true);
-    const [saving, setSaving] = useState(false);
+
+    const [loadingOptions, setLoadingOptions] =
+        useState(true);
+
+    const [saving, setSaving] =
+        useState(false);
+
+
+    // =========================================================
+    // MESSAGES
+    // =========================================================
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
-    const [consultationId, setConsultationId] = useState("");
 
-    /*
-    =========================================================
-    CONSULTATION FORM
-    =========================================================
-    */
+    // =========================================================
+    // CONSULTATION FORM
+    // =========================================================
 
     const [form, setForm] = useState({
-        consultation_id: `CONS${Date.now()}`,
         symptoms: "",
         diagnosis: "",
         clinical_notes: "",
         treatment_plan: "",
         follow_up_date: "",
-        status: "COMPLETED",
     });
 
-    /*
-    =========================================================
-    MEDICINE FORMS
-    =========================================================
-    */
 
-    const [medicineForms, setMedicineForms] = useState([]);
+    // =========================================================
+    // MEDICINE FORMS
+    // =========================================================
 
-    /*
-    =========================================================
-    LAB FORMS
-    =========================================================
-    */
-
-    const [labForms, setLabForms] = useState([]);
+    const [medicineForms, setMedicineForms] =
+        useState([]);
 
 
-    /*
-    =========================================================
-    LOAD MEDICINES AND LAB TESTS
-    =========================================================
-    */
+    // =========================================================
+    // LAB FORMS
+    // =========================================================
+
+    const [labForms, setLabForms] =
+        useState([]);
+
+
+    // =========================================================
+    // TODAY STRING
+    // =========================================================
+
+    const getTodayString = () => {
+
+        const today = new Date();
+
+        const year =
+            today.getFullYear();
+
+        const month =
+            String(
+                today.getMonth() + 1
+            ).padStart(2, "0");
+
+        const day =
+            String(
+                today.getDate()
+            ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    };
+
+
+    const todayString =
+        getTodayString();
+
+
+    // =========================================================
+    // LOAD MEDICINES AND LAB TESTS
+    // =========================================================
 
     useEffect(() => {
+
         const loadOptions = async () => {
+
             try {
+
                 setLoadingOptions(true);
                 setError("");
 
@@ -92,67 +144,99 @@ function DoctorConsultation() {
                     getLabTests(),
                 ]);
 
-                setMedicines(
-                    Array.isArray(medicineResponse.data)
+
+                const medicineData =
+                    Array.isArray(
+                        medicineResponse.data
+                    )
                         ? medicineResponse.data
-                        : medicineResponse.data?.results || []
+                        : medicineResponse.data?.results || [];
+
+
+                const labData =
+                    Array.isArray(
+                        labResponse.data
+                    )
+                        ? labResponse.data
+                        : labResponse.data?.results || [];
+
+
+                setMedicines(
+                    medicineData
                 );
 
                 setLabTests(
-                    Array.isArray(labResponse.data)
-                        ? labResponse.data
-                        : labResponse.data?.results || []
+                    labData
                 );
 
+
             } catch (err) {
+
                 console.error(
                     "Prescription options error:",
                     err.response?.data || err
                 );
 
+
                 setError(
                     "Unable to load medicines and lab tests."
                 );
 
+
             } finally {
+
                 setLoadingOptions(false);
+
             }
+
         };
 
+
         loadOptions();
+
     }, []);
 
 
-    /*
-    =========================================================
-    CLINICAL FORM CHANGE
-    =========================================================
-    */
+    // =========================================================
+    // CLINICAL FORM CHANGE
+    // =========================================================
 
     const handleChange = (e) => {
+
         const {
             name,
             value,
         } = e.target;
 
+
         setForm((previous) => ({
             ...previous,
             [name]: value,
         }));
+
+
+        if (error) {
+            setError("");
+        }
+
     };
 
 
-    /*
-    =========================================================
-    MEDICINES
-    =========================================================
-    */
+    // =========================================================
+    // ADD MEDICINE
+    // =========================================================
 
     const addMedicine = () => {
+
         setMedicineForms((previous) => [
+
             ...previous,
+
             {
-                id: Date.now(),
+                id:
+                    Date.now() +
+                    Math.random(),
+
                 medicine: "",
                 dosage: "",
                 frequency: "",
@@ -160,237 +244,355 @@ function DoctorConsultation() {
                 route: "",
                 instructions: "",
             },
+
         ]);
+
     };
 
+
+    // =========================================================
+    // UPDATE MEDICINE
+    // =========================================================
 
     const updateMedicine = (
         id,
         field,
         value
     ) => {
+
         setMedicineForms((previous) =>
             previous.map((medicine) =>
                 medicine.id === id
+
                     ? {
                         ...medicine,
                         [field]: value,
                     }
+
                     : medicine
             )
         );
+
+
+        if (error) {
+            setError("");
+        }
+
     };
 
 
+    // =========================================================
+    // REMOVE MEDICINE
+    // =========================================================
+
     const removeMedicine = (id) => {
+
         setMedicineForms((previous) =>
             previous.filter(
                 (medicine) =>
                     medicine.id !== id
             )
         );
+
     };
 
 
-    /*
-    =========================================================
-    LAB TESTS
-    =========================================================
-    */
+    // =========================================================
+    // ADD LAB TEST
+    // =========================================================
 
     const addLabTest = () => {
+
         setLabForms((previous) => [
+
             ...previous,
+
             {
-                id: Date.now(),
+                id:
+                    Date.now() +
+                    Math.random(),
+
                 lab_test: "",
                 clinical_reason: "",
                 instructions: "",
             },
+
         ]);
+
     };
 
+
+    // =========================================================
+    // UPDATE LAB TEST
+    // =========================================================
 
     const updateLab = (
         id,
         field,
         value
     ) => {
+
         setLabForms((previous) =>
             previous.map((lab) =>
                 lab.id === id
+
                     ? {
                         ...lab,
                         [field]: value,
                     }
+
                     : lab
             )
         );
+
+
+        if (error) {
+            setError("");
+        }
+
     };
 
 
+    // =========================================================
+    // REMOVE LAB TEST
+    // =========================================================
+
     const removeLab = (id) => {
+
         setLabForms((previous) =>
             previous.filter(
                 (lab) =>
                     lab.id !== id
             )
         );
+
     };
 
 
-    /*
-    =========================================================
-    SAVE CONSULTATION
-    =========================================================
-    */
+    // =========================================================
+    // VALIDATE CONSULTATION
+    // =========================================================
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const validateForm = () => {
 
-        setError("");
-        setSuccess("");
-
-        /*
-        ---------------------------------------------------------
-        CHECK APPOINTMENT
-        ---------------------------------------------------------
-        */
+        // -----------------------------------------------------
+        // APPOINTMENT
+        // -----------------------------------------------------
 
         if (!appointmentId) {
-            setError(
-                "Appointment ID is missing."
-            );
-            return;
+
+            return "Appointment ID is missing.";
+
         }
 
 
-        /*
-        ---------------------------------------------------------
-        CHECK SYMPTOMS
-        ---------------------------------------------------------
-        */
+        // -----------------------------------------------------
+        // SYMPTOMS
+        // -----------------------------------------------------
 
         if (!form.symptoms.trim()) {
-            setError(
-                "Please enter the symptoms."
-            );
-            return;
+
+            return "Please enter the symptoms.";
+
         }
 
 
-        /*
-        ---------------------------------------------------------
-        CHECK DIAGNOSIS
-        ---------------------------------------------------------
-        */
+        // -----------------------------------------------------
+        // DIAGNOSIS
+        // -----------------------------------------------------
 
         if (!form.diagnosis.trim()) {
-            setError(
-                "Please enter the diagnosis."
-            );
-            return;
+
+            return "Please enter the diagnosis.";
+
         }
 
 
-        /*
-        ---------------------------------------------------------
-        VALIDATE MEDICINES
-        ---------------------------------------------------------
-        */
+        // -----------------------------------------------------
+        // FOLLOW-UP DATE
+        // -----------------------------------------------------
+
+        if (form.follow_up_date) {
+
+            if (
+                form.follow_up_date <
+                todayString
+            ) {
+
+                return (
+                    "Follow-up date cannot be in the past."
+                );
+
+            }
+
+        }
+
+
+        // -----------------------------------------------------
+        // MEDICINES
+        // -----------------------------------------------------
 
         for (
             let index = 0;
             index < medicineForms.length;
             index++
         ) {
-            const medicine = medicineForms[index];
+
+            const medicine =
+                medicineForms[index];
+
 
             if (!medicine.medicine) {
-                setError(
+
+                return (
                     `Please select Medicine ${index + 1}.`
                 );
-                return;
+
             }
+
 
             if (!medicine.dosage.trim()) {
-                setError(
+
+                return (
                     `Please enter dosage for Medicine ${index + 1}.`
                 );
-                return;
+
             }
+
 
             if (!medicine.frequency.trim()) {
-                setError(
+
+                return (
                     `Please enter frequency for Medicine ${index + 1}.`
                 );
-                return;
+
             }
 
+
             if (!medicine.duration.trim()) {
-                setError(
+
+                return (
                     `Please enter duration for Medicine ${index + 1}.`
                 );
-                return;
+
             }
+
         }
 
 
-        /*
-        ---------------------------------------------------------
-        VALIDATE LAB TESTS
-        ---------------------------------------------------------
-        */
+        // -----------------------------------------------------
+        // LAB TESTS
+        // -----------------------------------------------------
 
         for (
             let index = 0;
             index < labForms.length;
             index++
         ) {
-            const lab = labForms[index];
+
+            const lab =
+                labForms[index];
+
 
             if (!lab.lab_test) {
-                setError(
+
+                return (
                     `Please select Lab Test ${index + 1}.`
                 );
-                return;
+
             }
+
         }
 
 
-        /*
-        =========================================================
-        START SAVING
-        =========================================================
-        */
+        return "";
+
+    };
+
+
+    // =========================================================
+    // SAVE CONSULTATION
+    // =========================================================
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+
+        setError("");
+        setSuccess("");
+
+
+        // -----------------------------------------------------
+        // VALIDATION
+        // -----------------------------------------------------
+
+        const validationError =
+            validateForm();
+
+
+        if (validationError) {
+
+            setError(
+                validationError
+            );
+
+            return;
+
+        }
+
+
+        // -----------------------------------------------------
+        // START SAVING
+        // -----------------------------------------------------
 
         try {
+
             setSaving(true);
 
 
+            // =================================================
+            // STEP 1
+            // CREATE CONSULTATION
+            // =================================================
+
             /*
-            =====================================================
-            STEP 1 — CREATE CONSULTATION
-            =====================================================
-
-            The consultation is created with:
-
-            status = COMPLETED
-
-            This matches the button:
-            "Complete Consultation"
-            */
+             * IMPORTANT:
+             *
+             * Do NOT send consultation_id.
+             *
+             * The backend generates the business ID.
+             *
+             * Example:
+             *
+             * CON000001
+             */
 
             const consultationResponse =
                 await createConsultation({
-                    consultation_id: form.consultation_id,
-                    appointment: Number(appointmentId),
-                    symptoms: form.symptoms,
-                    diagnosis: form.diagnosis,
-                    clinical_notes: form.clinical_notes,
-                    treatment_plan: form.treatment_plan,
-                    follow_up_date: form.follow_up_date || null,
-                    status: "COMPLETED",
+
+                    appointment:
+                        Number(appointmentId),
+
+                    symptoms:
+                        form.symptoms.trim(),
+
+                    diagnosis:
+                        form.diagnosis.trim(),
+
+                    clinical_notes:
+                        form.clinical_notes.trim(),
+
+                    treatment_plan:
+                        form.treatment_plan.trim(),
+
+                    follow_up_date:
+                        form.follow_up_date ||
+                        null,
+
+                    status:
+                        "COMPLETED",
+
                 });
 
 
@@ -398,32 +600,41 @@ function DoctorConsultation() {
                 consultationResponse.data;
 
 
+            /*
+             * Use the database primary key for
+             * creating related prescriptions.
+             *
+             * This is NOT the business consultation ID.
+             */
+
             const createdConsultationId =
                 consultation.id;
 
 
-            setConsultationId(
-                createdConsultationId
-            );
-
-
-            /*
-            =====================================================
-            STEP 2 — CREATE MEDICINE PRESCRIPTIONS
-            =====================================================
-            */
+            // =================================================
+            // STEP 2
+            // CREATE MEDICINE PRESCRIPTIONS
+            // =================================================
 
             for (
                 let index = 0;
                 index < medicineForms.length;
                 index++
             ) {
+
                 const medicine =
                     medicineForms[index];
 
+
+                /*
+                 * Do NOT generate medicine prescription ID.
+                 *
+                 * Backend generates:
+                 *
+                 * MEDP000001
+                 */
+
                 await createMedicinePrescription({
-                    prescription_id:
-                        `MEDP${Date.now()}${index}`,
 
                     consultation:
                         createdConsultationId,
@@ -434,55 +645,49 @@ function DoctorConsultation() {
                         ),
 
                     dosage:
-                        medicine.dosage,
+                        medicine.dosage.trim(),
 
                     frequency:
-                        medicine.frequency,
+                        medicine.frequency.trim(),
 
                     duration:
-                        medicine.duration,
+                        medicine.duration.trim(),
 
                     route:
-                        medicine.route,
+                        medicine.route.trim(),
 
                     instructions:
-                        medicine.instructions,
+                        medicine.instructions.trim(),
+
                 });
+
             }
 
 
-            /*
-            =====================================================
-            STEP 3 — CREATE LAB PRESCRIPTIONS
-            =====================================================
-            */
+            // =================================================
+            // STEP 3
+            // CREATE LAB PRESCRIPTIONS
+            // =================================================
 
             for (
                 let index = 0;
                 index < labForms.length;
                 index++
             ) {
+
                 const lab =
                     labForms[index];
 
+
                 /*
-                IMPORTANT:
-
-                lab_test must contain the
-                LabTest DATABASE ID.
-
-                Example:
-
-                lab_test: 1
-
-                NOT:
-
-                test_name: "Blood Test"
-                */
+                 * Do NOT generate lab prescription ID.
+                 *
+                 * Backend generates:
+                 *
+                 * LABP000001
+                 */
 
                 await createLabPrescription({
-                    lab_request_id:
-                        `LABP${Date.now()}${index}`,
 
                     consultation:
                         createdConsultationId,
@@ -493,22 +698,22 @@ function DoctorConsultation() {
                         ),
 
                     clinical_reason:
-                        lab.clinical_reason,
+                        lab.clinical_reason.trim(),
 
                     instructions:
-                        lab.instructions,
+                        lab.instructions.trim(),
 
                     status:
                         "REQUESTED",
+
                 });
+
             }
 
 
-            /*
-            =====================================================
-            SUCCESS
-            =====================================================
-            */
+            // =================================================
+            // SUCCESS
+            // =================================================
 
             setSuccess(
                 "Consultation completed successfully."
@@ -516,15 +721,16 @@ function DoctorConsultation() {
 
 
             /*
-            Navigate back to appointments
-            after a short delay so the
-            success message can be seen.
-            */
+             * Navigate back after a short delay
+             * so the success message is visible.
+             */
 
             setTimeout(() => {
+
                 navigate(
                     "/doctor/appointments"
                 );
+
             }, 1200);
 
 
@@ -544,6 +750,7 @@ function DoctorConsultation() {
                 data &&
                 typeof data === "object"
             ) {
+
                 const message =
                     Object.entries(data)
                         .map(
@@ -556,44 +763,50 @@ function DoctorConsultation() {
                         )
                         .join(" | ");
 
+
                 setError(
                     message ||
                     "Unable to save consultation."
                 );
+
 
             } else {
 
                 setError(
                     "Unable to save consultation."
                 );
+
             }
+
 
         } finally {
 
             setSaving(false);
+
         }
+
     };
 
 
-    /*
-    =========================================================
-    UI
-    =========================================================
-    */
+    // =========================================================
+    // UI
+    // =========================================================
 
     return (
+
         <DoctorLayout
             title="Consultation"
             subtitle="Record clinical findings and prescribe medicines or lab tests."
         >
 
-            {/* =====================================================
+            {/* =================================================
                 PATIENT HEADER
-            ===================================================== */}
+            ================================================= */}
 
             <section className="doctor-consultation-patient">
 
                 <div>
+
                     <span>
                         Patient
                     </span>
@@ -603,10 +816,12 @@ function DoctorConsultation() {
                             appointment?.patient_name ||
                             "Patient"}
                     </strong>
+
                 </div>
 
 
                 <div>
+
                     <span>
                         Patient ID
                     </span>
@@ -617,10 +832,12 @@ function DoctorConsultation() {
                             appointment?.patient ||
                             "-"}
                     </strong>
+
                 </div>
 
 
                 <div>
+
                     <span>
                         Appointment
                     </span>
@@ -628,26 +845,41 @@ function DoctorConsultation() {
                     <strong>
                         #{appointmentId}
                     </strong>
+
                 </div>
 
             </section>
 
 
-            {/* =====================================================
-                ERROR / SUCCESS
-            ===================================================== */}
+            {/* =================================================
+                ERROR
+            ================================================= */}
 
             {error && (
-                <div className="doctor-error">
+
+                <div
+                    className="doctor-error"
+                    role="alert"
+                >
                     {error}
                 </div>
+
             )}
 
 
+            {/* =================================================
+                SUCCESS
+            ================================================= */}
+
             {success && (
-                <div className="doctor-success">
+
+                <div
+                    className="doctor-success"
+                    role="status"
+                >
                     {success}
                 </div>
+
             )}
 
 
@@ -665,14 +897,16 @@ function DoctorConsultation() {
                     <div className="doctor-section-heading">
 
                         <div>
+
                             <h2>
                                 Clinical Assessment
                             </h2>
 
                             <p>
-                                Record the patient's
-                                current clinical condition.
+                                Record the patient's current
+                                clinical condition.
                             </p>
+
                         </div>
 
                     </div>
@@ -680,15 +914,22 @@ function DoctorConsultation() {
 
                     <div className="doctor-form-grid">
 
-                        {/* SYMPTOMS */}
+
+                        {/* =================================================
+                            SYMPTOMS
+                        ================================================= */}
 
                         <div className="doctor-form-group full">
 
-                            <label>
+                            <label htmlFor="symptoms">
                                 Symptoms
+                                <span className="required-mark">
+                                    *
+                                </span>
                             </label>
 
                             <textarea
+                                id="symptoms"
                                 name="symptoms"
                                 value={form.symptoms}
                                 onChange={handleChange}
@@ -700,15 +941,21 @@ function DoctorConsultation() {
                         </div>
 
 
-                        {/* DIAGNOSIS */}
+                        {/* =================================================
+                            DIAGNOSIS
+                        ================================================= */}
 
                         <div className="doctor-form-group">
 
-                            <label>
+                            <label htmlFor="diagnosis">
                                 Diagnosis
+                                <span className="required-mark">
+                                    *
+                                </span>
                             </label>
 
                             <textarea
+                                id="diagnosis"
                                 name="diagnosis"
                                 value={form.diagnosis}
                                 onChange={handleChange}
@@ -720,15 +967,18 @@ function DoctorConsultation() {
                         </div>
 
 
-                        {/* CLINICAL NOTES */}
+                        {/* =================================================
+                            CLINICAL NOTES
+                        ================================================= */}
 
                         <div className="doctor-form-group">
 
-                            <label>
+                            <label htmlFor="clinical_notes">
                                 Clinical Notes
                             </label>
 
                             <textarea
+                                id="clinical_notes"
                                 name="clinical_notes"
                                 value={
                                     form.clinical_notes
@@ -741,15 +991,18 @@ function DoctorConsultation() {
                         </div>
 
 
-                        {/* TREATMENT PLAN */}
+                        {/* =================================================
+                            TREATMENT PLAN
+                        ================================================= */}
 
                         <div className="doctor-form-group full">
 
-                            <label>
+                            <label htmlFor="treatment_plan">
                                 Treatment Plan
                             </label>
 
                             <textarea
+                                id="treatment_plan"
                                 name="treatment_plan"
                                 value={
                                     form.treatment_plan
@@ -762,22 +1015,33 @@ function DoctorConsultation() {
                         </div>
 
 
-                        {/* FOLLOW-UP DATE */}
+                        {/* =================================================
+                            FOLLOW-UP DATE
+                        ================================================= */}
 
                         <div className="doctor-form-group">
 
-                            <label>
+                            <label htmlFor="follow_up_date">
                                 Follow-up Date
                             </label>
 
                             <input
+                                id="follow_up_date"
                                 type="date"
                                 name="follow_up_date"
                                 value={
                                     form.follow_up_date
                                 }
+                                min={todayString}
                                 onChange={handleChange}
+                                onClick={(e) =>
+                                    e.currentTarget.showPicker?.()
+                                }
                             />
+
+                            <small className="doctor-field-help">
+                                Select today or a future date.
+                            </small>
 
                         </div>
 
@@ -797,10 +1061,14 @@ function DoctorConsultation() {
                         <div className="doctor-section-title-with-icon">
 
                             <div className="doctor-section-icon medicine">
+
                                 <Pill size={19} />
+
                             </div>
 
+
                             <div>
+
                                 <h2>
                                     Medicines
                                 </h2>
@@ -809,6 +1077,7 @@ function DoctorConsultation() {
                                     Add medicines prescribed
                                     during this consultation.
                                 </p>
+
                             </div>
 
                         </div>
@@ -817,9 +1086,13 @@ function DoctorConsultation() {
 
 
                     {medicineForms.length === 0 && (
+
                         <div className="doctor-no-items">
+
                             No medicines added.
+
                         </div>
+
                     )}
 
 
@@ -839,6 +1112,7 @@ function DoctorConsultation() {
                                             Medicine {index + 1}
                                         </strong>
 
+
                                         <button
                                             type="button"
                                             className="doctor-remove-button"
@@ -848,8 +1122,11 @@ function DoctorConsultation() {
                                                 )
                                             }
                                         >
+
                                             <Trash2 size={16} />
+
                                             Remove
+
                                         </button>
 
                                     </div>
@@ -857,12 +1134,18 @@ function DoctorConsultation() {
 
                                     <div className="doctor-form-grid">
 
-                                        {/* MEDICINE */}
+
+                                        {/* =================================================
+                                            MEDICINE
+                                        ================================================= */}
 
                                         <div className="doctor-form-group full">
 
                                             <label>
                                                 Medicine
+                                                <span className="required-mark">
+                                                    *
+                                                </span>
                                             </label>
 
                                             <select
@@ -883,6 +1166,7 @@ function DoctorConsultation() {
                                                     Select Medicine
                                                 </option>
 
+
                                                 {medicines.map(
                                                     (item) => (
 
@@ -901,12 +1185,17 @@ function DoctorConsultation() {
                                         </div>
 
 
-                                        {/* DOSAGE */}
+                                        {/* =================================================
+                                            DOSAGE
+                                        ================================================= */}
 
                                         <div className="doctor-form-group">
 
                                             <label>
                                                 Dosage
+                                                <span className="required-mark">
+                                                    *
+                                                </span>
                                             </label>
 
                                             <input
@@ -928,12 +1217,17 @@ function DoctorConsultation() {
                                         </div>
 
 
-                                        {/* FREQUENCY */}
+                                        {/* =================================================
+                                            FREQUENCY
+                                        ================================================= */}
 
                                         <div className="doctor-form-group">
 
                                             <label>
                                                 Frequency
+                                                <span className="required-mark">
+                                                    *
+                                                </span>
                                             </label>
 
                                             <input
@@ -955,12 +1249,17 @@ function DoctorConsultation() {
                                         </div>
 
 
-                                        {/* DURATION */}
+                                        {/* =================================================
+                                            DURATION
+                                        ================================================= */}
 
                                         <div className="doctor-form-group">
 
                                             <label>
                                                 Duration
+                                                <span className="required-mark">
+                                                    *
+                                                </span>
                                             </label>
 
                                             <input
@@ -982,7 +1281,9 @@ function DoctorConsultation() {
                                         </div>
 
 
-                                        {/* ROUTE */}
+                                        {/* =================================================
+                                            ROUTE
+                                        ================================================= */}
 
                                         <div className="doctor-form-group">
 
@@ -990,8 +1291,7 @@ function DoctorConsultation() {
                                                 Route
                                             </label>
 
-                                            <input
-                                                type="text"
+                                            <select
                                                 value={
                                                     medicine.route
                                                 }
@@ -1002,13 +1302,48 @@ function DoctorConsultation() {
                                                         e.target.value
                                                     )
                                                 }
-                                                placeholder="e.g. Oral"
-                                            />
+                                            >
+
+                                                <option value="">
+                                                    Select Route
+                                                </option>
+
+                                                <option value="ORAL">
+                                                    Oral
+                                                </option>
+
+                                                <option value="TOPICAL">
+                                                    Topical
+                                                </option>
+
+                                                <option value="INJECTION">
+                                                    Injection
+                                                </option>
+
+                                                <option value="INHALATION">
+                                                    Inhalation
+                                                </option>
+
+                                                <option value="SUBLINGUAL">
+                                                    Sublingual
+                                                </option>
+
+                                                <option value="RECTAL">
+                                                    Rectal
+                                                </option>
+
+                                                <option value="OTHER">
+                                                    Other
+                                                </option>
+
+                                            </select>
 
                                         </div>
 
 
-                                        {/* INSTRUCTIONS */}
+                                        {/* =================================================
+                                            INSTRUCTIONS
+                                        ================================================= */}
 
                                         <div className="doctor-form-group full">
 
@@ -1048,8 +1383,11 @@ function DoctorConsultation() {
                         className="doctor-add-item-button"
                         onClick={addMedicine}
                     >
+
                         <Plus size={17} />
-                        Add Another Medicine
+
+                        Add Medicine
+
                     </button>
 
                 </section>
@@ -1066,10 +1404,14 @@ function DoctorConsultation() {
                         <div className="doctor-section-title-with-icon">
 
                             <div className="doctor-section-icon lab">
+
                                 <FlaskConical size={19} />
+
                             </div>
 
+
                             <div>
+
                                 <h2>
                                     Lab Tests
                                 </h2>
@@ -1078,6 +1420,7 @@ function DoctorConsultation() {
                                     Request laboratory tests
                                     for this patient.
                                 </p>
+
                             </div>
 
                         </div>
@@ -1086,9 +1429,13 @@ function DoctorConsultation() {
 
 
                     {labForms.length === 0 && (
+
                         <div className="doctor-no-items">
+
                             No lab tests added.
+
                         </div>
+
                     )}
 
 
@@ -1108,6 +1455,7 @@ function DoctorConsultation() {
                                             Lab Test {index + 1}
                                         </strong>
 
+
                                         <button
                                             type="button"
                                             className="doctor-remove-button"
@@ -1117,8 +1465,11 @@ function DoctorConsultation() {
                                                 )
                                             }
                                         >
+
                                             <Trash2 size={16} />
+
                                             Remove
+
                                         </button>
 
                                     </div>
@@ -1126,12 +1477,18 @@ function DoctorConsultation() {
 
                                     <div className="doctor-form-grid">
 
-                                        {/* LAB TEST */}
+
+                                        {/* =================================================
+                                            LAB TEST
+                                        ================================================= */}
 
                                         <div className="doctor-form-group full">
 
                                             <label>
                                                 Lab Test
+                                                <span className="required-mark">
+                                                    *
+                                                </span>
                                             </label>
 
                                             <select
@@ -1152,6 +1509,7 @@ function DoctorConsultation() {
                                                     Select Lab Test
                                                 </option>
 
+
                                                 {labTests.map(
                                                     (test) => (
 
@@ -1170,7 +1528,9 @@ function DoctorConsultation() {
                                         </div>
 
 
-                                        {/* CLINICAL REASON */}
+                                        {/* =================================================
+                                            CLINICAL REASON
+                                        ================================================= */}
 
                                         <div className="doctor-form-group full">
 
@@ -1196,7 +1556,9 @@ function DoctorConsultation() {
                                         </div>
 
 
-                                        {/* INSTRUCTIONS */}
+                                        {/* =================================================
+                                            INSTRUCTIONS
+                                        ================================================= */}
 
                                         <div className="doctor-form-group full">
 
@@ -1236,8 +1598,11 @@ function DoctorConsultation() {
                         className="doctor-add-item-button"
                         onClick={addLabTest}
                     >
+
                         <Plus size={17} />
-                        Add Another Lab Test
+
+                        Add Lab Test
+
                     </button>
 
                 </section>
@@ -1255,8 +1620,11 @@ function DoctorConsultation() {
                         onClick={() =>
                             navigate(-1)
                         }
+                        disabled={saving}
                     >
+
                         Cancel
+
                     </button>
 
 
@@ -1273,7 +1641,10 @@ function DoctorConsultation() {
 
                         {saving
                             ? "Saving..."
-                            : "Complete Consultation"}
+                            : loadingOptions
+                                ? "Loading..."
+                                : "Complete Consultation"
+                        }
 
                     </button>
 
@@ -1282,6 +1653,7 @@ function DoctorConsultation() {
             </form>
 
         </DoctorLayout>
+
     );
 }
 

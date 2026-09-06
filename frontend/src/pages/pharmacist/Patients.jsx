@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Search,
     Users,
     Eye,
     Phone,
-    CalendarDays,
+    RefreshCw,
 } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 import PharmacistLayout from "../../components/pharmacist/PharmacistLayout";
 
@@ -15,6 +17,8 @@ import {
 
 
 function Patients() {
+    const navigate = useNavigate();
+
     const [patients, setPatients] = useState([]);
 
     const [search, setSearch] = useState("");
@@ -40,7 +44,11 @@ function Patients() {
             const response =
                 await getPharmacistPatients();
 
-            setPatients(response.data || []);
+            setPatients(
+                Array.isArray(response.data)
+                    ? response.data
+                    : []
+            );
 
         } catch (err) {
             console.error(
@@ -53,7 +61,6 @@ function Patients() {
                 err.response?.data?.error ||
                 "Unable to load patients."
             );
-
         } finally {
             setLoading(false);
         }
@@ -61,20 +68,20 @@ function Patients() {
 
 
     // ==========================================
-    // SEARCH PATIENTS
+    // FILTER PATIENTS
     // ==========================================
 
-    const filteredPatients = patients.filter(
-        (patient) => {
+    const filteredPatients = useMemo(() => {
 
-            const searchText =
-                search.toLowerCase().trim();
+        const searchText =
+            search.toLowerCase().trim();
 
-            if (!searchText) {
-                return true;
-            }
+        if (!searchText) {
+            return patients;
+        }
 
-            return (
+        return patients.filter(
+            (patient) =>
                 patient.name
                     ?.toLowerCase()
                     .includes(searchText) ||
@@ -85,10 +92,33 @@ function Patients() {
 
                 patient.phone
                     ?.toLowerCase()
+                    .includes(searchText) ||
+
+                patient.gender
+                    ?.toLowerCase()
                     .includes(searchText)
+        );
+
+    }, [patients, search]);
+
+
+    // ==========================================
+    // VIEW PATIENT
+    // ==========================================
+
+    const handleViewPatient = (patient) => {
+
+        if (!patient.patient_id) {
+            setError(
+                "Patient ID is not available."
             );
+            return;
         }
-    );
+
+        navigate(
+            `/pharmacist/patients/${patient.patient_id}`
+        );
+    };
 
 
     return (
@@ -119,13 +149,42 @@ function Patients() {
                 </div>
 
 
-                <div className="pharmacist-toolbar-count">
+                <div
+                    className="pharmacist-toolbar-count"
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                    }}
+                >
 
                     <Users size={17} />
 
                     <span>
                         {filteredPatients.length} patients
                     </span>
+
+
+                    <button
+                        type="button"
+                        className="pharmacist-action-button"
+                        onClick={loadPatients}
+                        disabled={loading}
+                        title="Refresh patients"
+                    >
+
+                        <RefreshCw
+                            size={15}
+                            className={
+                                loading
+                                    ? "pharmacist-spin"
+                                    : ""
+                            }
+                        />
+
+                        Refresh
+
+                    </button>
 
                 </div>
 
@@ -187,34 +246,41 @@ function Patients() {
                                             }
                                         >
 
-                                            {/* Patient ID */}
+                                            {/* PATIENT ID */}
 
                                             <td>
+
                                                 <strong>
                                                     {
-                                                        patient.patient_id
+                                                        patient.patient_id ||
+                                                        "-"
                                                     }
                                                 </strong>
+
                                             </td>
 
 
-                                            {/* Name */}
+                                            {/* NAME */}
 
                                             <td>
 
                                                 <div className="pharmacist-patient-name">
 
                                                     <div className="pharmacist-patient-avatar">
+
                                                         {patient.name
                                                             ?.charAt(
                                                                 0
                                                             )
-                                                            ?.toUpperCase()}
+                                                            ?.toUpperCase() ||
+                                                            "P"}
+
                                                     </div>
 
                                                     <span>
                                                         {
-                                                            patient.name
+                                                            patient.name ||
+                                                            "-"
                                                         }
                                                     </span>
 
@@ -223,25 +289,27 @@ function Patients() {
                                             </td>
 
 
-                                            {/* Age */}
+                                            {/* AGE */}
 
                                             <td>
                                                 {
-                                                    patient.age
+                                                    patient.age ??
+                                                    "-"
                                                 }
                                             </td>
 
 
-                                            {/* Gender */}
+                                            {/* GENDER */}
 
                                             <td>
                                                 {
-                                                    patient.gender
+                                                    patient.gender ||
+                                                    "-"
                                                 }
                                             </td>
 
 
-                                            {/* Phone */}
+                                            {/* PHONE */}
 
                                             <td>
 
@@ -261,7 +329,7 @@ function Patients() {
                                             </td>
 
 
-                                            {/* Address */}
+                                            {/* ADDRESS */}
 
                                             <td>
                                                 {
@@ -271,7 +339,7 @@ function Patients() {
                                             </td>
 
 
-                                            {/* Action */}
+                                            {/* ACTION */}
 
                                             <td>
 
@@ -279,14 +347,14 @@ function Patients() {
                                                     type="button"
                                                     className="pharmacist-action-button"
                                                     onClick={() =>
-                                                        window.location.href =
-                                                            `/pharmacist/patients/${patient.patient_id}`
+                                                        handleViewPatient(
+                                                            patient
+                                                        )
                                                     }
                                                 >
+
                                                     <Eye
-                                                        size={
-                                                            15
-                                                        }
+                                                        size={15}
                                                     />
 
                                                     View
@@ -296,7 +364,6 @@ function Patients() {
                                             </td>
 
                                         </tr>
-
                                     )
                                 )}
 
@@ -318,13 +385,14 @@ function Patients() {
                                             />
 
                                             <span>
-                                                No patients found.
+                                                {search.trim()
+                                                    ? "No patients match your search."
+                                                    : "No patients found."}
                                             </span>
 
                                         </td>
 
                                     </tr>
-
                                 )}
 
                             </tbody>
@@ -332,7 +400,6 @@ function Patients() {
                         </table>
 
                     </div>
-
                 )}
 
             </div>

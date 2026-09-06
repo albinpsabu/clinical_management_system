@@ -28,15 +28,20 @@ function DoctorLayout({
         location.pathname === "/doctor";
 
     const isAppointments =
-        location.pathname.startsWith("/doctor/appointments");
+        location.pathname.startsWith(
+            "/doctor/appointments"
+        );
 
     return (
         <div className="doctor-layout">
 
-            {/* =========================
+            {/* =================================================
                 SIDEBAR
-            ========================= */}
+            ================================================= */}
+
             <aside className="doctor-sidebar">
+
+                {/* BRAND */}
 
                 <div className="doctor-sidebar-brand">
 
@@ -45,55 +50,103 @@ function DoctorLayout({
                     </div>
 
                     <div className="doctor-sidebar-brand-text">
-                        <strong>Clinic Management</strong>
-                        <span>Doctor Portal</span>
+
+                        <strong>
+                            Clinic Management
+                        </strong>
+
+                        <span>
+                            Doctor Portal
+                        </span>
+
                     </div>
 
                 </div>
 
+
+                {/* NAVIGATION */}
+
                 <nav>
 
-                    <button
-                        className={`doctor-sidebar-link ${
-                            isDashboard ? "active" : ""
-                        }`}
-                        onClick={() => navigate("/doctor")}
-                    >
-                        <LayoutDashboard size={18} />
-                        <span>Dashboard</span>
-                    </button>
+                    {/* DASHBOARD */}
 
                     <button
-                        className={`doctor-sidebar-link ${
-                            isAppointments ? "active" : ""
-                        }`}
+                        type="button"
+                        className={
+                            isDashboard
+                                ? "doctor-sidebar-link active"
+                                : "doctor-sidebar-link"
+                        }
                         onClick={() =>
-                            navigate("/doctor/appointments")
+                            navigate("/doctor")
                         }
                     >
+
+                        <LayoutDashboard size={18} />
+
+                        <span>
+                            Dashboard
+                        </span>
+
+                    </button>
+
+
+                    {/* APPOINTMENTS */}
+
+                    <button
+                        type="button"
+                        className={
+                            isAppointments
+                                ? "doctor-sidebar-link active"
+                                : "doctor-sidebar-link"
+                        }
+                        onClick={() =>
+                            navigate(
+                                "/doctor/appointments"
+                            )
+                        }
+                    >
+
                         <CalendarDays size={18} />
-                        <span>Appointments</span>
+
+                        <span>
+                            Appointments
+                        </span>
+
                     </button>
 
                 </nav>
 
+
+                {/* LOGOUT */}
+
                 <button
+                    type="button"
                     className="doctor-sidebar-logout"
                     onClick={handleLogout}
                 >
+
                     <LogOut size={18} />
-                    <span>Logout</span>
+
+                    <span>
+                        Logout
+                    </span>
+
                 </button>
 
             </aside>
 
 
-            {/* =========================
+            {/* =================================================
                 MAIN AREA
-            ========================= */}
+            ================================================= */}
+
             <div className="doctor-main">
 
-                {/* HEADER */}
+                {/* =================================================
+                    HEADER
+                ================================================= */}
+
                 <header className="doctor-header">
 
                     <div className="doctor-header-left">
@@ -107,11 +160,16 @@ function DoctorLayout({
 
                     <div className="doctor-header-right">
 
+                        {/* USER */}
+
                         <div className="doctor-header-user">
 
                             <div className="doctor-header-avatar">
+
                                 <Stethoscope size={18} />
+
                             </div>
+
 
                             <div className="doctor-header-user-info">
 
@@ -127,11 +185,17 @@ function DoctorLayout({
 
                         </div>
 
+
+                        {/* HEADER LOGOUT */}
+
                         <button
+                            type="button"
                             className="doctor-header-logout"
                             onClick={handleLogout}
                         >
+
                             Logout
+
                         </button>
 
                     </div>
@@ -139,21 +203,39 @@ function DoctorLayout({
                 </header>
 
 
-                {/* CONTENT */}
+                {/* =================================================
+                    CONTENT
+                ================================================= */}
+
                 <main className="doctor-content">
 
+                    {/* BACK BUTTON */}
+
                     {showBack && !isDashboard && (
+
                         <button
+                            type="button"
                             className="doctor-back-button"
-                            onClick={() => navigate(-1)}
+                            onClick={() =>
+                                navigate(-1)
+                            }
                         >
+
                             <ArrowLeft size={17} />
-                            <span>Back</span>
+
+                            <span>
+                                Back
+                            </span>
+
                         </button>
+
                     )}
 
 
+                    {/* PAGE HEADING */}
+
                     {title && (
+
                         <div className="doctor-page-heading">
 
                             <div>
@@ -163,16 +245,21 @@ function DoctorLayout({
                                 </h1>
 
                                 {subtitle && (
+
                                     <p>
                                         {subtitle}
                                     </p>
+
                                 )}
 
                             </div>
 
                         </div>
+
                     )}
 
+
+                    {/* PAGE CONTENT */}
 
                     {children}
 

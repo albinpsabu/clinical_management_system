@@ -3947,3 +3947,4338 @@
         font-size: 18px !important;
     }
 }
+/* ============================================================
+   PHARMACIST PORTAL
+   FINAL GLOBAL ALIGNMENT + MODAL NORMALIZATION
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. GLOBAL CONSISTENCY
+   ------------------------------------------------------------ */
+
+.pharmacist-layout,
+.pharmacist-layout *,
+.pharmacist-layout *::before,
+.pharmacist-layout *::after {
+    box-sizing: border-box;
+}
+
+.pharmacist-layout button,
+.pharmacist-layout input,
+.pharmacist-layout select,
+.pharmacist-layout textarea {
+    font-family: inherit;
+}
+
+
+/* ------------------------------------------------------------
+   2. PAGE CONTENT ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-content {
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px 38px 50px;
+}
+
+.pharmacist-page-heading {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.pharmacist-card,
+.pharmacist-dashboard-section,
+.pharmacist-dispense-card {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+
+/* ------------------------------------------------------------
+   3. TOOLBAR ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-toolbar {
+    width: 100%;
+    min-height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.pharmacist-toolbar > * {
+    min-width: 0;
+}
+
+.pharmacist-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pharmacist-filter-button {
+    min-width: 82px;
+    height: 40px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 14px;
+}
+
+
+/* ------------------------------------------------------------
+   4. SEARCH BOXES
+   ------------------------------------------------------------ */
+
+.pharmacist-search {
+    width: 100%;
+    max-width: 380px;
+}
+
+.pharmacist-search input {
+    width: 100%;
+    height: 42px;
+}
+
+
+/* ------------------------------------------------------------
+   5. STANDARD FORM GRID
+   All form fields have equal spacing.
+   ------------------------------------------------------------ */
+
+.pharmacist-form {
+    width: 100%;
+    padding: 24px;
+}
+
+.pharmacist-form-grid {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    column-gap: 20px;
+    row-gap: 20px;
+
+    align-items: start;
+}
+
+.pharmacist-form-group {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+    margin: 0;
+}
+
+.pharmacist-form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+
+/* ------------------------------------------------------------
+   6. FORM LABELS
+   ------------------------------------------------------------ */
+
+.pharmacist-form-group label {
+    width: 100%;
+    min-height: 18px;
+
+    display: flex;
+    align-items: center;
+
+    margin: 0;
+
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+
+/* ------------------------------------------------------------
+   7. ALL STANDARD FORM CONTROLS
+   Exactly the same height and spacing.
+   ------------------------------------------------------------ */
+
+.pharmacist-form-group input:not([type="checkbox"]):not([type="radio"]),
+.pharmacist-form-group select,
+.pharmacist-form-group textarea,
+
+.pharmacist-layout
+input:not([type="checkbox"]):not([type="radio"]),
+.pharmacist-layout select,
+.pharmacist-layout textarea {
+    width: 100%;
+    max-width: 100%;
+
+    border: 1px solid #d7e0eb !important;
+    border-radius: 8px;
+
+    background: #ffffff !important;
+    color: #172033 !important;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+    box-shadow: none;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
+}
+
+
+/* Normal input/select height */
+
+.pharmacist-form-group input:not([type="checkbox"]):not([type="radio"]),
+.pharmacist-form-group select,
+.pharmacist-layout input:not([type="checkbox"]):not([type="radio"]),
+.pharmacist-layout select {
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0 12px;
+}
+
+
+/* Textarea */
+
+.pharmacist-form-group textarea,
+.pharmacist-layout textarea {
+    min-height: 110px;
+    padding: 11px 12px;
+
+    line-height: 1.5;
+    resize: vertical;
+}
+
+
+/* Focus */
+
+.pharmacist-form-group input:focus,
+.pharmacist-form-group select:focus,
+.pharmacist-form-group textarea:focus,
+.pharmacist-layout input:not([type="checkbox"]):not([type="radio"]):focus,
+.pharmacist-layout select:focus,
+.pharmacist-layout textarea:focus {
+    border-color: var(--ph-blue) !important;
+
+    background: #ffffff !important;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+
+/* Disabled */
+
+.pharmacist-form-group input:disabled,
+.pharmacist-form-group select:disabled,
+.pharmacist-form-group textarea:disabled {
+    background: #f8fafc !important;
+    color: #64748b !important;
+
+    cursor: not-allowed;
+}
+
+
+/* ------------------------------------------------------------
+   8. DATE INPUT
+   Calendar-style browser date picker.
+   ------------------------------------------------------------ */
+
+.pharmacist-layout input[type="date"] {
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0 12px;
+
+    color-scheme: light;
+}
+
+
+/* ------------------------------------------------------------
+   9. TIME INPUT
+   If a time input exists, keep it consistent.
+   The React component should use a <select> for
+   the required dropdown behaviour.
+   ------------------------------------------------------------ */
+
+.pharmacist-layout input[type="time"] {
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0 12px;
+
+    color-scheme: light;
+}
+
+
+/* ------------------------------------------------------------
+   10. SELECT DROPDOWN
+   ------------------------------------------------------------ */
+
+.pharmacist-layout select {
+    cursor: pointer;
+}
+
+.pharmacist-layout select option {
+    background: #ffffff;
+    color: #172033;
+}
+
+
+/* ------------------------------------------------------------
+   11. MODAL OVERLAY
+   Every popup is centered exactly.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(15, 23, 42, 0.48);
+
+    z-index: 1000;
+
+    overflow-y: auto;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+
+/* ------------------------------------------------------------
+   12. STANDARD MODAL
+   All popup boxes use the same dimensions.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal {
+    position: relative;
+
+    width: min(100%, 560px);
+
+    max-width: 560px;
+    max-height: calc(100vh - 48px);
+
+    margin: auto;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #ffffff;
+
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.18);
+
+    overflow: hidden;
+}
+
+
+/* ------------------------------------------------------------
+   13. MODAL HEADER
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-header {
+    width: 100%;
+    min-height: 68px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 0 24px;
+
+    border-bottom: 1px solid var(--ph-border);
+
+    background: #ffffff;
+}
+
+.pharmacist-modal-header > * {
+    min-width: 0;
+}
+
+.pharmacist-modal-header h2 {
+    margin: 0;
+
+    color: var(--ph-text);
+
+    font-size: 18px;
+    font-weight: 700;
+
+    line-height: 1.3;
+}
+
+
+/* ------------------------------------------------------------
+   14. MODAL CLOSE BUTTON
+   Fixed size so it never shifts the header.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-close {
+    width: 36px;
+    height: 36px;
+
+    min-width: 36px;
+
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #64748b;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease;
+}
+
+.pharmacist-modal-close:hover {
+    background: #f1f5f9;
+    color: var(--ph-text);
+}
+
+
+/* ------------------------------------------------------------
+   15. MODAL BODY
+   Equal left/right spacing.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-body {
+    width: 100%;
+
+    padding: 24px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* ------------------------------------------------------------
+   16. MODAL FORM GRID
+   All popup fields are equally spaced.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal .pharmacist-form-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    column-gap: 20px;
+    row-gap: 20px;
+
+    align-items: start;
+}
+
+
+/* ------------------------------------------------------------
+   17. MODAL FULL WIDTH FIELD
+   ------------------------------------------------------------ */
+
+.pharmacist-modal .full-width,
+.pharmacist-modal .pharmacist-form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+
+/* ------------------------------------------------------------
+   18. MODAL FOOTER
+   Buttons have equal vertical alignment.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-footer {
+    width: 100%;
+    min-height: 72px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 16px 24px;
+
+    border-top: 1px solid var(--ph-border);
+
+    background: #ffffff;
+}
+
+
+/* ------------------------------------------------------------
+   19. BUTTON NORMALIZATION
+   ------------------------------------------------------------ */
+
+.pharmacist-button,
+.pharmacist-primary-button,
+.pharmacist-secondary-button,
+.pharmacist-action-button,
+.pharmacist-small-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    vertical-align: middle;
+
+    white-space: nowrap;
+
+    line-height: 1;
+
+    box-sizing: border-box;
+}
+
+
+/* Main buttons */
+
+.pharmacist-button,
+.pharmacist-primary-button,
+.pharmacist-secondary-button {
+    min-width: 110px;
+    height: 42px;
+    min-height: 42px;
+
+    padding: 0 16px;
+
+    border-radius: 7px;
+}
+
+
+/* Modal footer buttons */
+
+.pharmacist-modal-footer .pharmacist-button,
+.pharmacist-modal-footer .pharmacist-primary-button,
+.pharmacist-modal-footer .pharmacist-secondary-button {
+    min-width: 120px;
+    height: 42px;
+}
+
+
+/* Action buttons */
+
+.pharmacist-action-button {
+    height: 36px;
+    min-height: 36px;
+
+    padding: 0 12px;
+}
+
+
+/* ------------------------------------------------------------
+   20. STAT CARD ALIGNMENT
+   All statistic cards equal height.
+   ------------------------------------------------------------ */
+
+.pharmacist-stats-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: stretch;
+}
+
+.pharmacist-stat-card {
+    width: 100%;
+    min-height: 126px;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 17px;
+
+    padding: 20px;
+}
+
+
+/* ------------------------------------------------------------
+   21. REPORT CARD ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-report-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: stretch;
+}
+
+.pharmacist-report-item,
+.pharmacist-report-card {
+    min-width: 0;
+    height: 100%;
+}
+
+
+/* ------------------------------------------------------------
+   22. PATIENT SUMMARY ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-patient-summary {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: stretch;
+}
+
+.pharmacist-patient-summary > div {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* ------------------------------------------------------------
+   23. DETAIL GRID ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-detail-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: stretch;
+}
+
+.pharmacist-detail-item {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* ------------------------------------------------------------
+   24. TABLE ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-table-container,
+.pharmacist-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+.pharmacist-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    table-layout: auto;
+}
+
+.pharmacist-table th,
+.pharmacist-table td {
+    vertical-align: middle;
+}
+
+
+/* Keep action cells together */
+
+.pharmacist-table td:last-child {
+    white-space: nowrap;
+}
+
+
+/* ------------------------------------------------------------
+   25. APPOINTMENT CARD ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-appointment-list {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+
+    align-items: stretch;
+}
+
+.pharmacist-appointment-card {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* ------------------------------------------------------------
+   26. DISPENSE PAGE ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-dispense-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.45fr)
+        minmax(320px, 0.55fr);
+
+    gap: 24px;
+
+    align-items: stretch;
+}
+
+.pharmacist-dispense-grid > * {
+    min-width: 0;
+    width: 100%;
+}
+
+
+/* ------------------------------------------------------------
+   27. DISPENSE DETAILS
+   Equal columns and equal spacing.
+   ------------------------------------------------------------ */
+
+.pharmacist-prescription-details {
+    width: auto;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 14px;
+
+    align-items: stretch;
+}
+
+.pharmacist-prescription-detail,
+.pharmacist-prescription-detail-item {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* ------------------------------------------------------------
+   28. DISPENSE INFO
+   ------------------------------------------------------------ */
+
+.pharmacist-dispense-info-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: stretch;
+}
+
+.pharmacist-dispense-info-item {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   29. PRICE / TOTAL ROWS
+   ------------------------------------------------------------ */
+
+.pharmacist-price-row,
+.pharmacist-total-row {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.pharmacist-price-row span,
+.pharmacist-total-row span,
+.pharmacist-price-row strong,
+.pharmacist-total-row strong {
+    margin: 0;
+}
+
+
+/* ------------------------------------------------------------
+   30. ALERT ALIGNMENT
+   ------------------------------------------------------------ */
+
+.pharmacist-alert,
+.pharmacist-error,
+.pharmacist-success {
+    width: 100%;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-left: 0;
+    margin-right: 0;
+}
+
+
+/* ------------------------------------------------------------
+   31. EMPTY STATES
+   ------------------------------------------------------------ */
+
+.pharmacist-empty,
+.pharmacist-empty-state {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   32. NO HORIZONTAL OVERFLOW
+   ------------------------------------------------------------ */
+
+.pharmacist-layout,
+.pharmacist-main,
+.pharmacist-content {
+    max-width: 100%;
+}
+
+.pharmacist-main {
+    min-width: 0;
+}
+
+.pharmacist-content {
+    overflow-x: hidden;
+}
+
+
+/* ------------------------------------------------------------
+   33. TABLET
+   ------------------------------------------------------------ */
+
+@media (max-width: 1100px) {
+
+    .pharmacist-stats-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .pharmacist-report-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .pharmacist-detail-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .pharmacist-dispense-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pharmacist-prescription-details {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* ------------------------------------------------------------
+   34. MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+
+    .pharmacist-content {
+        padding: 22px 16px 35px;
+    }
+
+    .pharmacist-form,
+    .pharmacist-modal-body {
+        padding: 20px;
+    }
+
+    .pharmacist-form-grid,
+    .pharmacist-modal .pharmacist-form-grid {
+        grid-template-columns: 1fr;
+
+        row-gap: 18px;
+        column-gap: 0;
+    }
+
+    .pharmacist-form-group.full-width,
+    .pharmacist-modal .full-width,
+    .pharmacist-modal
+    .pharmacist-form-group.full-width {
+        grid-column: auto;
+    }
+
+    .pharmacist-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pharmacist-search {
+        max-width: none;
+    }
+
+    .pharmacist-filter-group {
+        width: 100%;
+    }
+
+    .pharmacist-stats-grid,
+    .pharmacist-report-grid,
+    .pharmacist-detail-grid,
+    .pharmacist-patient-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .pharmacist-appointment-list {
+        grid-template-columns: 1fr;
+    }
+
+    .pharmacist-dispense-info-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .pharmacist-prescription-details {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 14px 10px;
+    }
+
+    .pharmacist-modal-overlay {
+        padding: 16px;
+    }
+
+    .pharmacist-modal {
+        width: 100%;
+        max-width: 100%;
+
+        max-height: calc(100vh - 32px);
+    }
+
+    .pharmacist-modal-header {
+        min-height: 64px;
+        padding: 0 18px;
+    }
+
+    .pharmacist-modal-footer {
+        padding: 14px 18px;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   35. SMALL MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 480px) {
+
+    .pharmacist-content {
+        padding: 18px 12px 30px;
+    }
+
+    .pharmacist-form,
+    .pharmacist-modal-body {
+        padding: 16px;
+    }
+
+    .pharmacist-modal-overlay {
+        padding: 10px;
+    }
+
+    .pharmacist-modal {
+        max-height: calc(100vh - 20px);
+        border-radius: 10px;
+    }
+
+    .pharmacist-modal-header {
+        padding: 0 15px;
+    }
+
+    .pharmacist-modal-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+
+        gap: 8px;
+
+        padding: 14px 15px;
+    }
+
+    .pharmacist-modal-footer
+    .pharmacist-button,
+    .pharmacist-modal-footer
+    .pharmacist-primary-button,
+    .pharmacist-modal-footer
+    .pharmacist-secondary-button {
+        width: 100%;
+    }
+
+    .pharmacist-prescription-details {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+/* ============================================================
+   UPDATE STOCK MODAL
+   EXACT CSS FOR CURRENT Medicines.jsx
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   MODAL OVERLAY
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 24px !important;
+
+    background: rgba(15, 23, 42, 0.48) !important;
+
+    z-index: 9999 !important;
+
+    overflow-y: auto !important;
+}
+
+
+/* ------------------------------------------------------------
+   MODAL BOX
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay > .pharmacist-modal {
+    position: relative !important;
+
+    width: 100% !important;
+    max-width: 560px !important;
+
+    max-height: calc(100vh - 48px) !important;
+
+    margin: auto !important;
+
+    background: #ffffff !important;
+
+    border: 1px solid #d9e2ec !important;
+
+    border-radius: 14px !important;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.20) !important;
+
+    overflow: hidden !important;
+}
+
+
+/* ------------------------------------------------------------
+   HEADER
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay
+.pharmacist-modal
+.pharmacist-modal-header {
+    width: 100% !important;
+
+    min-height: 76px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: space-between !important;
+
+    padding: 14px 22px !important;
+
+    margin: 0 !important;
+
+    border-bottom: 1px solid #e2e8f0 !important;
+
+    background: #ffffff !important;
+}
+
+
+/* Header left side */
+
+.pharmacist-modal-header > div:first-child {
+    flex: 1 !important;
+
+    min-width: 0 !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    justify-content: center !important;
+
+    gap: 3px !important;
+
+    margin: 0 !important;
+}
+
+
+/* Update Stock */
+
+.pharmacist-modal-header h2 {
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #102a43 !important;
+
+    font-size: 19px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1.3 !important;
+}
+
+
+/* Medicine name */
+
+.pharmacist-modal-header p {
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #627d98 !important;
+
+    font-size: 14px !important;
+
+    font-weight: 500 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* Close */
+
+.pharmacist-modal-header
+.pharmacist-modal-close {
+    width: 36px !important;
+    height: 36px !important;
+
+    min-width: 36px !important;
+
+    flex-shrink: 0 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    margin: 0 0 0 16px !important;
+
+    padding: 0 !important;
+
+    border: 0 !important;
+
+    border-radius: 7px !important;
+
+    background: transparent !important;
+
+    color: #64748b !important;
+
+    cursor: pointer !important;
+}
+
+.pharmacist-modal-header
+.pharmacist-modal-close:hover {
+    background: #f1f5f9 !important;
+
+    color: #1e293b !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORM
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay
+.pharmacist-modal
+> form {
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    background: #ffffff !important;
+}
+
+
+/* ------------------------------------------------------------
+   MEDICINE INFORMATION
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-info {
+    width: 100% !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    margin: 0 !important;
+
+    padding: 18px 24px 20px !important;
+
+    background: #ffffff !important;
+}
+
+
+/* Each information row */
+
+.pharmacist-modal-info > div {
+    width: 100% !important;
+
+    min-height: 22px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    line-height: 1.4 !important;
+
+    text-align: center !important;
+}
+
+
+/* Information label */
+
+.pharmacist-modal-info > div > span {
+    display: inline-block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #334155 !important;
+
+    font-size: 14px !important;
+
+    font-weight: 500 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* Information value */
+
+.pharmacist-modal-info > div > strong {
+    display: inline-block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #172033 !important;
+
+    font-size: 15px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORM FIELDS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group {
+    width: auto !important;
+
+    margin: 0 24px 18px !important;
+
+    padding: 0 !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: stretch !important;
+
+    gap: 7px !important;
+}
+
+
+/* First form field gets proper separation */
+
+.pharmacist-modal-info
++ .pharmacist-form-group {
+    margin-top: 0 !important;
+}
+
+
+/* Last form field */
+
+.pharmacist-modal
+.pharmacist-form-group:nth-of-type(4) {
+    margin-bottom: 20px !important;
+}
+
+
+/* ------------------------------------------------------------
+   LABEL
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+label {
+    width: 100% !important;
+
+    min-height: 18px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #334155 !important;
+
+    font-size: 13px !important;
+
+    font-weight: 600 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* ------------------------------------------------------------
+   INPUT
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input {
+    width: 100% !important;
+
+    height: 46px !important;
+
+    min-height: 46px !important;
+
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    margin: 0 !important;
+
+    padding: 0 14px !important;
+
+    border: 1px solid #cbd5e1 !important;
+
+    border-radius: 9px !important;
+
+    background: #ffffff !important;
+
+    color: #172033 !important;
+
+    font-family: inherit !important;
+
+    font-size: 14px !important;
+
+    line-height: 46px !important;
+
+    outline: none !important;
+
+    box-shadow: none !important;
+}
+
+
+/* Focus */
+
+.pharmacist-modal
+.pharmacist-form-group
+input:focus {
+    border-color: #2563eb !important;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+
+/* ------------------------------------------------------------
+   NUMBER INPUT
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="number"] {
+    appearance: auto !important;
+
+    -moz-appearance: textfield !important;
+}
+
+
+/* ------------------------------------------------------------
+   DATE INPUT
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="date"] {
+    height: 46px !important;
+
+    min-height: 46px !important;
+
+    padding: 0 12px !important;
+
+    line-height: normal !important;
+
+    cursor: pointer !important;
+
+    color-scheme: light !important;
+}
+
+
+/* Calendar icon */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 18px !important;
+
+    height: 18px !important;
+
+    margin-left: 8px !important;
+
+    cursor: pointer !important;
+
+    opacity: 0.75 !important;
+}
+
+
+/* ------------------------------------------------------------
+   PLACEHOLDER
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input::placeholder {
+    color: #94a3b8 !important;
+
+    opacity: 1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ERROR / SUCCESS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-error,
+.pharmacist-modal
+.pharmacist-success {
+    width: auto !important;
+
+    margin: 0 24px 16px !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   ACTION BUTTON AREA
+   IMPORTANT:
+   Your JSX uses .pharmacist-modal-actions,
+   NOT .pharmacist-modal-footer.
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions {
+    width: 100% !important;
+
+    min-height: 68px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: flex-end !important;
+
+    gap: 10px !important;
+
+    margin: 0 !important;
+
+    padding: 12px 24px !important;
+
+    border-top: 1px solid #e2e8f0 !important;
+
+    background: #ffffff !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   CANCEL + SAVE
+   EXACT SAME HEIGHT
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button,
+.pharmacist-modal-actions
+.pharmacist-primary-button {
+    width: auto !important;
+
+    min-width: 120px !important;
+
+    height: 42px !important;
+
+    min-height: 42px !important;
+
+    box-sizing: border-box !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    margin: 0 !important;
+
+    padding: 0 18px !important;
+
+    border-radius: 8px !important;
+
+    font-family: inherit !important;
+
+    font-size: 13px !important;
+
+    font-weight: 600 !important;
+
+    line-height: 1 !important;
+
+    white-space: nowrap !important;
+}
+
+
+/* Cancel */
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button {
+    border: 1px solid #cbd5e1 !important;
+
+    background: #ffffff !important;
+
+    color: #334155 !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button:hover:not(:disabled) {
+    background: #f8fafc !important;
+
+    border-color: #94a3b8 !important;
+}
+
+
+/* Save */
+
+.pharmacist-modal-actions
+.pharmacist-primary-button {
+    border: 1px solid #2563eb !important;
+
+    background: #2563eb !important;
+
+    color: #ffffff !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-primary-button:hover:not(:disabled) {
+    background: #1d4ed8 !important;
+}
+
+
+/* Button icon */
+
+.pharmacist-modal-actions
+button svg {
+    width: 16px !important;
+
+    height: 16px !important;
+
+    flex-shrink: 0 !important;
+}
+
+
+/* ------------------------------------------------------------
+   DISABLED BUTTON
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions
+button:disabled {
+    opacity: 0.6 !important;
+
+    cursor: not-allowed !important;
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 600px) {
+
+    .pharmacist-modal-overlay {
+        padding: 12px !important;
+    }
+
+    .pharmacist-modal-overlay
+    > .pharmacist-modal {
+        max-width: 100% !important;
+
+        max-height: calc(100vh - 24px) !important;
+
+        border-radius: 12px !important;
+    }
+
+    .pharmacist-modal-header {
+        padding: 14px 18px !important;
+    }
+
+    .pharmacist-modal-info {
+        padding: 17px 18px 18px !important;
+    }
+
+    .pharmacist-modal
+    .pharmacist-form-group {
+        margin-left: 18px !important;
+
+        margin-right: 18px !important;
+    }
+
+    .pharmacist-modal
+    .pharmacist-error,
+    .pharmacist-modal
+    .pharmacist-success {
+        margin-left: 18px !important;
+
+        margin-right: 18px !important;
+    }
+
+    .pharmacist-modal-actions {
+        padding-left: 18px !important;
+
+        padding-right: 18px !important;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   SMALL MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 420px) {
+
+    .pharmacist-modal-actions {
+        flex-direction: column-reverse !important;
+
+        align-items: stretch !important;
+
+        gap: 8px !important;
+
+        padding: 12px 16px !important;
+    }
+
+    .pharmacist-modal-actions
+    .pharmacist-secondary-button,
+    .pharmacist-modal-actions
+    .pharmacist-primary-button {
+        width: 100% !important;
+
+        min-width: 0 !important;
+    }
+}
+/* ============================================================
+   PHARMACIST - UPDATE STOCK MODAL
+   EXACT ALIGNMENT FOR Medicines.jsx
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   MODAL OVERLAY
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 20px !important;
+
+    background: rgba(15, 23, 42, 0.48) !important;
+
+    z-index: 9999 !important;
+
+    overflow-y: auto !important;
+}
+
+
+/* ------------------------------------------------------------
+   MODAL BOX
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay .pharmacist-modal {
+    width: 100% !important;
+
+    max-width: 520px !important;
+
+    max-height: calc(100vh - 40px) !important;
+
+    margin: 0 auto !important;
+
+    padding: 0 !important;
+
+    background: #ffffff !important;
+
+    border: 1px solid #d9e2ec !important;
+
+    border-radius: 14px !important;
+
+    overflow: hidden !important;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.20) !important;
+}
+
+
+/* ------------------------------------------------------------
+   MODAL HEADER
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay
+.pharmacist-modal
+.pharmacist-modal-header {
+
+    width: 100% !important;
+
+    min-height: 74px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: space-between !important;
+
+    gap: 16px !important;
+
+    margin: 0 !important;
+
+    padding: 14px 22px !important;
+
+    background: #ffffff !important;
+
+    border-bottom: 1px solid #e2e8f0 !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Header left section */
+
+.pharmacist-modal-header > div:first-child {
+
+    flex: 1 1 auto !important;
+
+    min-width: 0 !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: flex-start !important;
+
+    justify-content: center !important;
+
+    gap: 3px !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+}
+
+
+/* Update Stock title */
+
+.pharmacist-modal-header h2 {
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #102a43 !important;
+
+    font-size: 19px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1.25 !important;
+}
+
+
+/* Medicine name */
+
+.pharmacist-modal-header p {
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #627d98 !important;
+
+    font-size: 14px !important;
+
+    font-weight: 500 !important;
+
+    line-height: 1.3 !important;
+}
+
+
+/* ------------------------------------------------------------
+   CLOSE BUTTON
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-close {
+
+    width: 36px !important;
+
+    height: 36px !important;
+
+    min-width: 36px !important;
+
+    flex: 0 0 36px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    border: 0 !important;
+
+    border-radius: 7px !important;
+
+    background: transparent !important;
+
+    color: #64748b !important;
+
+    cursor: pointer !important;
+}
+
+.pharmacist-modal-close:hover {
+
+    background: #f1f5f9 !important;
+
+    color: #1e293b !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORM
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-overlay
+.pharmacist-modal
+> form {
+
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    background: #ffffff !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   MEDICINE INFORMATION
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-info {
+
+    width: 100% !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    margin: 0 !important;
+
+    padding: 18px 22px 20px !important;
+
+    background: #ffffff !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Code / Price rows */
+
+.pharmacist-modal-info > div {
+
+    width: 100% !important;
+
+    min-height: 22px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    text-align: center !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Labels */
+
+.pharmacist-modal-info span {
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #334155 !important;
+
+    font-size: 14px !important;
+
+    font-weight: 500 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* Values */
+
+.pharmacist-modal-info strong {
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #172033 !important;
+
+    font-size: 15px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORM GROUPS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group {
+
+    width: auto !important;
+
+    margin: 0 22px 17px !important;
+
+    padding: 0 !important;
+
+    display: flex !important;
+
+    flex-direction: column !important;
+
+    align-items: stretch !important;
+
+    gap: 7px !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   LABELS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group label {
+
+    width: 100% !important;
+
+    min-height: 18px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    color: #334155 !important;
+
+    font-size: 13px !important;
+
+    font-weight: 600 !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ALL INPUTS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group input {
+
+    display: block !important;
+
+    width: 100% !important;
+
+    height: 44px !important;
+
+    min-height: 44px !important;
+
+    max-width: none !important;
+
+    margin: 0 !important;
+
+    padding: 0 13px !important;
+
+    box-sizing: border-box !important;
+
+    border: 1px solid #cbd5e1 !important;
+
+    border-radius: 8px !important;
+
+    background: #ffffff !important;
+
+    color: #172033 !important;
+
+    font-family: inherit !important;
+
+    font-size: 14px !important;
+
+    line-height: normal !important;
+
+    outline: none !important;
+
+    box-shadow: none !important;
+}
+
+
+/* Focus */
+
+.pharmacist-modal
+.pharmacist-form-group input:focus {
+
+    border-color: #2563eb !important;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+
+/* ------------------------------------------------------------
+   NUMBER INPUT
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="number"] {
+
+    appearance: auto !important;
+
+    -webkit-appearance: auto !important;
+}
+
+
+/* ------------------------------------------------------------
+   BATCH INPUT
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="text"] {
+
+    height: 44px !important;
+
+    min-height: 44px !important;
+}
+
+
+/* ------------------------------------------------------------
+   EXPIRY DATE
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="date"] {
+
+    height: 44px !important;
+
+    min-height: 44px !important;
+
+    padding: 0 12px !important;
+
+    line-height: normal !important;
+
+    cursor: pointer !important;
+
+    color-scheme: light !important;
+}
+
+
+/* Browser calendar icon */
+
+.pharmacist-modal
+.pharmacist-form-group
+input[type="date"]::-webkit-calendar-picker-indicator {
+
+    width: 17px !important;
+
+    height: 17px !important;
+
+    margin: 0 !important;
+
+    cursor: pointer !important;
+
+    opacity: 0.75 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ERROR
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-error {
+
+    width: auto !important;
+
+    margin: 0 22px 16px !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   SUCCESS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal
+.pharmacist-success {
+
+    width: auto !important;
+
+    margin: 0 22px 16px !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   ACTIONS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions {
+
+    width: 100% !important;
+
+    min-height: 68px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    justify-content: flex-end !important;
+
+    gap: 10px !important;
+
+    margin: 0 !important;
+
+    padding: 12px 22px !important;
+
+    border-top: 1px solid #e2e8f0 !important;
+
+    background: #ffffff !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ------------------------------------------------------------
+   CANCEL + SAVE BUTTONS
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button,
+
+.pharmacist-modal-actions
+.pharmacist-primary-button {
+
+    width: 120px !important;
+
+    min-width: 120px !important;
+
+    height: 42px !important;
+
+    min-height: 42px !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    margin: 0 !important;
+
+    padding: 0 15px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 8px !important;
+
+    font-family: inherit !important;
+
+    font-size: 13px !important;
+
+    font-weight: 600 !important;
+
+    line-height: 1 !important;
+
+    white-space: nowrap !important;
+
+    cursor: pointer !important;
+}
+
+
+/* Cancel */
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button {
+
+    border: 1px solid #cbd5e1 !important;
+
+    background: #ffffff !important;
+
+    color: #334155 !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button:hover:not(:disabled) {
+
+    background: #f8fafc !important;
+
+    border-color: #94a3b8 !important;
+}
+
+
+/* Save */
+
+.pharmacist-modal-actions
+.pharmacist-primary-button {
+
+    border: 1px solid #2563eb !important;
+
+    background: #2563eb !important;
+
+    color: #ffffff !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-primary-button:hover:not(:disabled) {
+
+    background: #1d4ed8 !important;
+}
+
+
+/* ------------------------------------------------------------
+   BUTTON ICON
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions button svg {
+
+    width: 16px !important;
+
+    height: 16px !important;
+
+    flex-shrink: 0 !important;
+}
+
+
+/* ------------------------------------------------------------
+   DISABLED
+   ------------------------------------------------------------ */
+
+.pharmacist-modal-actions button:disabled {
+
+    opacity: 0.60 !important;
+
+    cursor: not-allowed !important;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+    .pharmacist-modal-overlay {
+
+        padding: 12px !important;
+    }
+
+    .pharmacist-modal-overlay
+    .pharmacist-modal {
+
+        max-width: 100% !important;
+
+        max-height: calc(100vh - 24px) !important;
+
+        border-radius: 12px !important;
+    }
+
+    .pharmacist-modal-header {
+
+        padding-left: 18px !important;
+
+        padding-right: 18px !important;
+    }
+
+    .pharmacist-modal-info {
+
+        padding-left: 18px !important;
+
+        padding-right: 18px !important;
+    }
+
+    .pharmacist-modal
+    .pharmacist-form-group {
+
+        margin-left: 18px !important;
+
+        margin-right: 18px !important;
+    }
+
+    .pharmacist-modal
+    .pharmacist-error,
+
+    .pharmacist-modal
+    .pharmacist-success {
+
+        margin-left: 18px !important;
+
+        margin-right: 18px !important;
+    }
+
+    .pharmacist-modal-actions {
+
+        padding-left: 18px !important;
+
+        padding-right: 18px !important;
+    }
+}
+
+
+/* ============================================================
+   VERY SMALL SCREEN
+   ============================================================ */
+
+@media (max-width: 420px) {
+
+    .pharmacist-modal-actions {
+
+        flex-direction: column-reverse !important;
+
+        align-items: stretch !important;
+
+        gap: 8px !important;
+
+        padding: 12px 16px !important;
+    }
+
+    .pharmacist-modal-actions
+    .pharmacist-secondary-button,
+
+    .pharmacist-modal-actions
+    .pharmacist-primary-button {
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+    }
+}
+
+
+/* ============================================================
+   FINAL PHARMACIST DISPENSE PAGE ALIGNMENT
+   ============================================================ */
+
+/* Main page */
+.pharmacist-dispense-page {
+    width: 100% !important;
+    max-width: 1320px !important;
+    margin: 0 auto !important;
+    padding: 0 0 40px !important;
+    box-sizing: border-box !important;
+}
+
+/* Page heading */
+.pharmacist-dispense-page .pharmacist-page-heading {
+    width: 100% !important;
+    margin: 0 0 24px !important;
+}
+
+.pharmacist-dispense-page .pharmacist-page-heading h1 {
+    margin: 0 !important;
+}
+
+.pharmacist-dispense-page .pharmacist-page-heading p {
+    margin: 7px 0 0 !important;
+}
+
+/* ============================================================
+   LEFT + RIGHT CARDS
+   ============================================================ */
+
+.pharmacist-dispense-grid {
+    width: 100% !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        330px !important;
+
+    gap: 24px !important;
+
+    align-items: start !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pharmacist-dispense-grid > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+}
+
+/* Both cards use identical box rules */
+.pharmacist-dispense-grid .pharmacist-card {
+    width: 100% !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* ============================================================
+   PRESCRIPTION CARD
+   ============================================================ */
+
+.pharmacist-dispense-grid > .pharmacist-card:first-child {
+    min-height: 0 !important;
+}
+
+.pharmacist-dispense-card-header {
+    width: 100% !important;
+    min-height: 78px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    padding: 16px 24px !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-dispense-card-header-left {
+    min-width: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    gap: 12px !important;
+}
+
+.pharmacist-dispense-card-header h2 {
+    margin: 0 !important;
+}
+
+.pharmacist-dispense-card-header p {
+    margin: 5px 0 0 !important;
+}
+
+/* ============================================================
+   MEDICINE AREA
+   ============================================================ */
+
+.pharmacist-dispense-medicine {
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    padding:
+        30px
+        28px
+        24px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+
+    box-sizing: border-box !important;
+}
+
+/* Medicine heading stays centered */
+.pharmacist-medicine-heading {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    margin: 0 !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-medicine-heading strong {
+    margin: 0 !important;
+
+    font-size: 20px !important;
+    line-height: 1.35 !important;
+}
+
+.pharmacist-medicine-heading span {
+    margin: 0 !important;
+}
+
+/* ============================================================
+   PATIENT / APPOINTMENT / STOCK
+   Equal three-column spacing
+   ============================================================ */
+
+.pharmacist-dispense-info-grid {
+    width: 100% !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 16px !important;
+
+    margin:
+        34px
+        0
+        28px !important;
+
+    padding: 0 !important;
+
+    align-items: stretch !important;
+}
+
+.pharmacist-dispense-info-item {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    min-height: 90px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 12px 8px !important;
+
+    margin: 0 !important;
+
+    text-align: center !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-dispense-info-item svg {
+    width: 18px !important;
+    height: 18px !important;
+
+    margin:
+        0
+        auto
+        8px !important;
+}
+
+.pharmacist-dispense-info-item .label {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin:
+        0
+        0
+        5px !important;
+
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-dispense-info-item .value {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+
+    text-align: center !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* ============================================================
+   PRESCRIPTION DATE / TIME / DETAILS
+   ============================================================ */
+
+.pharmacist-prescription-info {
+    width: 100% !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr)) !important;
+
+    gap: 16px !important;
+
+    margin: 0 !important;
+    padding:
+        20px
+        0
+        0 !important;
+
+    border-top: 1px solid #e5eaf0 !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-prescription-info-item {
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-prescription-info-item .label {
+    display: block !important;
+
+    margin:
+        0
+        0
+        5px !important;
+
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-prescription-info-item .value {
+    display: block !important;
+
+    margin: 0 !important;
+
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+
+    text-align: center !important;
+}
+
+/* ============================================================
+   INSTRUCTIONS
+   ============================================================ */
+
+.pharmacist-instructions {
+    width: 100% !important;
+
+    margin:
+        22px
+        0
+        0 !important;
+
+    padding:
+        15px
+        18px !important;
+
+    box-sizing: border-box !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-instructions-title {
+    margin:
+        0
+        0
+        6px !important;
+}
+
+.pharmacist-instructions-text {
+    margin: 0 !important;
+}
+
+/* ============================================================
+   DISPENSING CARD
+   ============================================================ */
+
+.pharmacist-dispense-grid > .pharmacist-card:last-child {
+    width: 100% !important;
+
+    align-self: start !important;
+
+    margin: 0 !important;
+}
+
+.pharmacist-dispensing-section {
+    width: 100% !important;
+
+    padding:
+        20px
+        18px
+        18px !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-dispensing-form {
+    width: 100% !important;
+
+    max-width: none !important;
+
+    margin: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* ============================================================
+   QUANTITY FIELD
+   ============================================================ */
+
+.pharmacist-dispensing-form .pharmacist-form-group {
+    width: 100% !important;
+
+    margin:
+        0
+        0
+        14px !important;
+
+    padding: 0 !important;
+}
+
+.pharmacist-dispensing-form .pharmacist-form-group label {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin:
+        0
+        0
+        7px !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-dispensing-form .pharmacist-form-group input,
+.pharmacist-dispensing-form .pharmacist-form-group select,
+.pharmacist-dispensing-form .pharmacist-form-group textarea {
+    width: 100% !important;
+
+    height: 46px !important;
+    min-height: 46px !important;
+
+    margin: 0 !important;
+
+    padding:
+        0
+        12px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 8px !important;
+}
+
+/* ============================================================
+   AVAILABLE STOCK
+   ============================================================ */
+
+.pharmacist-stock-info {
+    width: 100% !important;
+
+    min-height: 38px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 12px !important;
+
+    margin:
+        0
+        0
+        8px !important;
+
+    padding:
+        9px
+        11px !important;
+
+    box-sizing: border-box !important;
+}
+
+/* ============================================================
+   PRICE
+   ============================================================ */
+
+.pharmacist-dispensing-form .pharmacist-price-row {
+    width: 100% !important;
+
+    min-height: 54px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 15px !important;
+
+    margin: 0 !important;
+
+    padding:
+        12px
+        0 !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-dispensing-form .pharmacist-price-row span,
+.pharmacist-dispensing-form .pharmacist-price-row strong {
+    margin: 0 !important;
+}
+
+/* ============================================================
+   QUANTITY SUMMARY
+   ============================================================ */
+
+.pharmacist-dispensing-form .pharmacist-quantity-row {
+    width: 100% !important;
+
+    min-height: 54px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 15px !important;
+
+    margin: 0 !important;
+
+    padding:
+        12px
+        0 !important;
+
+    border-top: 1px solid #e5eaf0 !important;
+
+    box-sizing: border-box !important;
+}
+
+/* If the page uses the generic summary row */
+.pharmacist-dispensing-form .pharmacist-quantity-display {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 15px !important;
+}
+
+/* ============================================================
+   TOTAL
+   ============================================================ */
+
+.pharmacist-dispensing-form .pharmacist-total-row {
+    width: 100% !important;
+
+    min-height: 68px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 15px !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        15px
+        0 !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-dispensing-form .pharmacist-total-row span,
+.pharmacist-dispensing-form .pharmacist-total-row strong {
+    margin: 0 !important;
+}
+
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
+
+.pharmacist-dispensing-form .pharmacist-form-actions {
+    width: 100% !important;
+
+    display: grid !important;
+
+    grid-template-columns:
+        minmax(110px, 0.8fr)
+        minmax(0, 1.2fr) !important;
+
+    gap: 10px !important;
+
+    margin:
+        10px
+        0
+        0 !important;
+
+    padding:
+        16px
+        0
+        0 !important;
+
+    border-top: 1px solid #e5eaf0 !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-dispensing-form .pharmacist-primary-button,
+.pharmacist-dispensing-form .pharmacist-secondary-button {
+    width: 100% !important;
+
+    height: 42px !important;
+    min-height: 42px !important;
+
+    margin: 0 !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    padding:
+        0
+        12px !important;
+
+    box-sizing: border-box !important;
+
+    border-radius: 7px !important;
+}
+
+/* ============================================================
+   DESKTOP HEIGHT / POSITION
+   ============================================================ */
+
+@media (min-width: 1101px) {
+
+    .pharmacist-dispense-grid {
+        grid-template-columns:
+            minmax(0, 1fr)
+            330px !important;
+    }
+
+    .pharmacist-dispense-grid > .pharmacist-card:last-child {
+        position: sticky !important;
+        top: 92px !important;
+    }
+}
+
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 1100px) {
+
+    .pharmacist-dispense-grid {
+        grid-template-columns: 1fr !important;
+
+        gap: 20px !important;
+    }
+
+    .pharmacist-dispense-grid > .pharmacist-card:last-child {
+        position: static !important;
+    }
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .pharmacist-dispense-page {
+        max-width: 100% !important;
+
+        padding:
+            0
+            0
+            30px !important;
+    }
+
+    .pharmacist-dispense-grid {
+        grid-template-columns: 1fr !important;
+
+        gap: 16px !important;
+    }
+
+    .pharmacist-dispense-medicine {
+        padding:
+            22px
+            16px
+            20px !important;
+    }
+
+    .pharmacist-dispense-card-header {
+        min-height: 70px !important;
+
+        padding:
+            14px
+            16px !important;
+    }
+
+    .pharmacist-dispense-info-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr)) !important;
+
+        gap: 6px !important;
+
+        margin:
+            25px
+            0
+            22px !important;
+    }
+
+    .pharmacist-dispense-info-item {
+        min-height: 78px !important;
+
+        padding:
+            8px
+            3px !important;
+    }
+
+    .pharmacist-prescription-info {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+
+        gap:
+            18px
+            8px !important;
+    }
+
+    .pharmacist-dispensing-section {
+        padding:
+            18px
+            16px !important;
+    }
+}
+
+
+/* ============================================================
+   VERY SMALL MOBILE
+   ============================================================ */
+
+@media (max-width: 430px) {
+
+    .pharmacist-dispense-info-grid {
+        grid-template-columns: 1fr !important;
+
+        gap: 4px !important;
+    }
+
+    .pharmacist-dispense-info-item {
+        min-height: 62px !important;
+    }
+
+    .pharmacist-prescription-info {
+        grid-template-columns: 1fr 1fr !important;
+
+        gap:
+            15px
+            6px !important;
+    }
+
+    .pharmacist-dispensing-form .pharmacist-form-actions {
+        grid-template-columns: 1fr !important;
+    }
+}
+/* ============================================================
+   PHARMACIST MEDICINES - UPDATE STOCK POPUP
+   FINAL OVERRIDE
+   Paste this at the VERY END of pharmacist.css
+   ============================================================ */
+
+/* Popup overlay */
+.pharmacist-modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 24px !important;
+
+    background: rgba(15, 23, 42, 0.50) !important;
+
+    z-index: 99999 !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* Popup box */
+.pharmacist-modal-overlay > .pharmacist-modal {
+    position: relative !important;
+
+    width: 100% !important;
+    max-width: 560px !important;
+
+    max-height: calc(100vh - 48px) !important;
+
+    margin: auto !important;
+    padding: 0 !important;
+
+    background: #ffffff !important;
+
+    border: 1px solid #d9e2ec !important;
+    border-radius: 14px !important;
+
+    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.22) !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    box-sizing: border-box !important;
+}
+
+/* Popup header */
+.pharmacist-modal-overlay .pharmacist-modal-header {
+    width: 100% !important;
+    min-height: 76px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 16px !important;
+
+    margin: 0 !important;
+    padding: 16px 22px !important;
+
+    background: #ffffff !important;
+
+    border-bottom: 1px solid #e2e8f0 !important;
+
+    box-sizing: border-box !important;
+}
+
+/* Header text */
+.pharmacist-modal-header > div:first-child {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: flex-start !important;
+    justify-content: center !important;
+
+    gap: 4px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pharmacist-modal-header h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #102a43 !important;
+
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+}
+
+.pharmacist-modal-header p {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #627d98 !important;
+
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1.35 !important;
+}
+
+/* Close button */
+.pharmacist-modal-close {
+    flex: 0 0 36px !important;
+
+    width: 36px !important;
+    height: 36px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border: 1px solid #d9e2ec !important;
+    border-radius: 7px !important;
+
+    background: #ffffff !important;
+    color: #64748b !important;
+
+    cursor: pointer !important;
+}
+
+.pharmacist-modal-close:hover:not(:disabled) {
+    background: #f8fafc !important;
+    color: #102a43 !important;
+}
+
+/* ============================================================
+   MEDICINE CODE + PRICE
+   ============================================================ */
+
+.pharmacist-modal-info {
+    width: 100% !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+
+    gap: 14px !important;
+
+    margin: 0 !important;
+    padding: 20px 22px 6px !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-modal-info > div {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    min-height: 66px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: flex-start !important;
+    justify-content: center !important;
+
+    gap: 5px !important;
+
+    padding: 12px 14px !important;
+
+    background: #f8fafc !important;
+
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-modal-info span {
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #64748b !important;
+
+    font-size: 11px !important;
+    font-weight: 600 !important;
+
+    line-height: 1.2 !important;
+
+    text-transform: uppercase !important;
+    letter-spacing: 0.35px !important;
+}
+
+.pharmacist-modal-info strong {
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #102a43 !important;
+
+    font-size: 15px !important;
+    font-weight: 700 !important;
+
+    line-height: 1.3 !important;
+}
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+.pharmacist-modal-overlay .pharmacist-modal form {
+    width: 100% !important;
+
+    margin: 0 !important;
+    padding: 14px 22px 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+/* Every field */
+.pharmacist-modal-overlay .pharmacist-modal .pharmacist-form-group {
+    width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    gap: 7px !important;
+
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+/* Labels */
+.pharmacist-modal-overlay .pharmacist-modal .pharmacist-form-group label {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    gap: 5px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #334e68 !important;
+
+    font-size: 13px !important;
+    font-weight: 600 !important;
+
+    line-height: 1.3 !important;
+}
+
+/* Inputs */
+.pharmacist-modal-overlay .pharmacist-modal .pharmacist-form-group input {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    background: #ffffff !important;
+
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+
+    color: #243b53 !important;
+
+    font-family: inherit !important;
+    font-size: 14px !important;
+    line-height: 44px !important;
+
+    outline: none !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-modal-overlay .pharmacist-modal .pharmacist-form-group input:hover {
+    border-color: #94a3b8 !important;
+}
+
+.pharmacist-modal-overlay .pharmacist-modal .pharmacist-form-group input:focus {
+    background: #ffffff !important;
+
+    border-color: #2563eb !important;
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+/* Number input */
+.pharmacist-modal-overlay
+.pharmacist-modal
+input[type="number"] {
+    appearance: textfield !important;
+    -moz-appearance: textfield !important;
+}
+
+/* Date input */
+.pharmacist-modal-overlay
+.pharmacist-modal
+input[type="date"] {
+    cursor: pointer !important;
+}
+
+/* Keep browser calendar control aligned */
+.pharmacist-modal-overlay
+.pharmacist-modal
+input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 18px !important;
+    height: 18px !important;
+
+    margin-right: 2px !important;
+
+    cursor: pointer !important;
+}
+
+/* ============================================================
+   ERROR / SUCCESS
+   ============================================================ */
+
+.pharmacist-modal-overlay .pharmacist-error,
+.pharmacist-modal-overlay .pharmacist-success {
+    width: 100% !important;
+
+    margin: 0 0 16px !important;
+
+    box-sizing: border-box !important;
+}
+
+/* ============================================================
+   CANCEL + SAVE
+   JSX uses .pharmacist-modal-actions
+   ============================================================ */
+
+.pharmacist-modal-actions {
+    width: 100% !important;
+
+    min-height: 70px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+
+    gap: 10px !important;
+
+    margin: 4px 0 0 !important;
+    padding: 14px 0 18px !important;
+
+    border-top: 1px solid #e2e8f0 !important;
+
+    background: #ffffff !important;
+
+    box-sizing: border-box !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button,
+.pharmacist-modal-actions
+.pharmacist-primary-button {
+    width: 125px !important;
+    min-width: 125px !important;
+
+    height: 42px !important;
+    min-height: 42px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    margin: 0 !important;
+    padding: 0 14px !important;
+
+    border-radius: 8px !important;
+
+    box-sizing: border-box !important;
+
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+
+    line-height: 1 !important;
+    white-space: nowrap !important;
+
+    cursor: pointer !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button {
+    border: 1px solid #cbd5e1 !important;
+
+    background: #ffffff !important;
+    color: #334155 !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-secondary-button:hover:not(:disabled) {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-primary-button {
+    border: 1px solid #2563eb !important;
+
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.pharmacist-modal-actions
+.pharmacist-primary-button:hover:not(:disabled) {
+    background: #1d4ed8 !important;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+    .pharmacist-modal-overlay {
+        padding: 12px !important;
+    }
+
+    .pharmacist-modal-overlay > .pharmacist-modal {
+        max-width: 100% !important;
+        max-height: calc(100vh - 24px) !important;
+        border-radius: 12px !important;
+    }
+
+    .pharmacist-modal-overlay .pharmacist-modal-header {
+        padding: 14px 16px !important;
+    }
+
+    .pharmacist-modal-info {
+        grid-template-columns: 1fr !important;
+
+        padding:
+            16px
+            16px
+            4px !important;
+    }
+
+    .pharmacist-modal-overlay .pharmacist-modal form {
+        padding:
+            14px
+            16px
+            0 !important;
+    }
+
+    .pharmacist-modal-actions {
+        flex-direction: column-reverse !important;
+        align-items: stretch !important;
+
+        padding:
+            14px
+            0
+            16px !important;
+    }
+
+    .pharmacist-modal-actions
+    .pharmacist-secondary-button,
+    .pharmacist-modal-actions
+    .pharmacist-primary-button {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+/* ============================================================
+   DISPENSE MEDICINE PAGE
+   FINAL ALIGNMENT / SPACING FIX
+   ============================================================ */
+
+/* Main two-column layout */
+.pharmacist-dispense-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr) !important;
+    gap: 24px !important;
+    align-items: start !important;
+    box-sizing: border-box;
+}
+
+.pharmacist-dispense-grid > .pharmacist-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   CARD HEADER
+   ============================================================ */
+
+.pharmacist-dispense-grid > .pharmacist-card > .pharmacist-card-header {
+    min-height: 88px !important;
+    padding: 20px 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    box-sizing: border-box;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card
+> .pharmacist-card-header h2 {
+    margin: 0 0 5px 0 !important;
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card
+> .pharmacist-card-header p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+}
+
+
+/* ============================================================
+   MEDICINE SECTION
+   ============================================================ */
+
+.pharmacist-dispense-medicine {
+    width: 100% !important;
+    min-height: 110px !important;
+    padding: 28px 30px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.pharmacist-dispense-medicine-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 4px !important;
+}
+
+.pharmacist-dispense-medicine > div:last-child {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+.pharmacist-dispense-medicine strong {
+    font-size: 21px !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+}
+
+.pharmacist-dispense-medicine span {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+}
+
+
+/* ============================================================
+   PATIENT / APPOINTMENT / STOCK
+   ============================================================ */
+
+.pharmacist-detail-grid {
+    width: 100% !important;
+
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 0 !important;
+
+    padding: 22px 30px !important;
+    margin: 0 !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-detail-item {
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 8px !important;
+    padding: 8px 12px !important;
+
+    text-align: center !important;
+    box-sizing: border-box;
+}
+
+.pharmacist-detail-item > svg {
+    flex-shrink: 0 !important;
+    margin-bottom: 2px !important;
+}
+
+.pharmacist-detail-item > div {
+    width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+
+    gap: 5px !important;
+}
+
+.pharmacist-detail-item span {
+    display: block !important;
+    margin: 0 !important;
+
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+}
+
+.pharmacist-detail-item strong {
+    display: block !important;
+    max-width: 100% !important;
+
+    margin: 0 !important;
+
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+
+    overflow-wrap: anywhere !important;
+}
+
+
+/* ============================================================
+   PRESCRIPTION DETAILS
+   ============================================================ */
+
+.pharmacist-prescription-details {
+    width: calc(100% - 60px) !important;
+
+    margin: 0 30px !important;
+    padding: 24px 0 !important;
+
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+
+    gap: 20px !important;
+
+    border-top: 1px solid #e2e8f0 !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-prescription-details > div {
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    text-align: center !important;
+}
+
+.pharmacist-prescription-details span {
+    display: block !important;
+    margin: 0 !important;
+
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+}
+
+.pharmacist-prescription-details strong {
+    display: block !important;
+    margin: 0 !important;
+
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+
+    overflow-wrap: anywhere !important;
+}
+
+
+/* ============================================================
+   INSTRUCTIONS
+   ============================================================ */
+
+.pharmacist-instructions {
+    margin: 0 30px 26px !important;
+    padding: 16px !important;
+
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-instructions span {
+    display: block !important;
+    margin-bottom: 7px !important;
+
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+.pharmacist-instructions p {
+    margin: 0 !important;
+
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+}
+
+
+/* ============================================================
+   DISPENSING FORM
+   IMPORTANT:
+   Current Dispense.jsx has the form directly inside the card.
+   ============================================================ */
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 24px 24px !important;
+
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   QUANTITY FIELD
+   ============================================================ */
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-group {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px 0 18px !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-group
+> label {
+    display: block !important;
+
+    margin: 0 0 8px !important;
+
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-group
+> input {
+    width: 100% !important;
+    height: 48px !important;
+
+    padding: 0 13px !important;
+
+    border: 1px solid #d5dee8 !important;
+    border-radius: 7px !important;
+
+    background: #ffffff !important;
+
+    font-size: 15px !important;
+    line-height: 48px !important;
+
+    box-sizing: border-box;
+
+    outline: none !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-group
+> input:focus {
+    border-color: #2563eb !important;
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-group
+> small {
+    display: block !important;
+
+    margin-top: 7px !important;
+
+    text-align: center !important;
+
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+}
+
+
+/* ============================================================
+   PRICE / QUANTITY ROWS
+   ============================================================ */
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-price-row {
+    width: 100% !important;
+    min-height: 58px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 16px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border-top: 1px solid #e2e8f0 !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-price-row span {
+    margin: 0 !important;
+
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+
+    color: #627d98 !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-price-row strong {
+    margin: 0 !important;
+
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+
+    color: #243b53 !important;
+}
+
+
+/* ============================================================
+   TOTAL AMOUNT
+   ============================================================ */
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-total-row {
+    width: 100% !important;
+    min-height: 72px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 16px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border-top: 2px solid #d9e2ec !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-total-row span {
+    margin: 0 !important;
+
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+
+    color: #102a43 !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-total-row strong {
+    margin: 0 !important;
+
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+
+    color: #2563eb !important;
+}
+
+
+/* ============================================================
+   ERROR / SUCCESS
+   ============================================================ */
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-error,
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-success {
+    width: 100% !important;
+
+    margin: 14px 0 0 !important;
+    padding: 11px 12px !important;
+
+    border-radius: 7px !important;
+
+    box-sizing: border-box;
+
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-actions {
+    width: 100% !important;
+
+    display: grid !important;
+    grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1.3fr) !important;
+
+    gap: 10px !important;
+
+    margin: 18px 0 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-actions
+> button {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 46px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    border-radius: 7px !important;
+
+    box-sizing: border-box;
+
+    font-size: 13px !important;
+    font-weight: 600 !important;
+
+    white-space: nowrap !important;
+}
+
+.pharmacist-dispense-grid
+> .pharmacist-card:nth-child(2)
+> form
+> .pharmacist-form-actions
+> button
+> svg {
+    flex-shrink: 0 !important;
+}
+
+
+/* ============================================================
+   DESKTOP HEIGHT / BALANCE
+   ============================================================ */
+
+@media (min-width: 1101px) {
+
+    .pharmacist-dispense-grid
+    > .pharmacist-card:first-child {
+        min-height: 500px !important;
+    }
+
+    .pharmacist-dispense-grid
+    > .pharmacist-card:nth-child(2) {
+        min-height: 0 !important;
+    }
+}
+
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 1100px) {
+
+    .pharmacist-dispense-grid {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+    }
+
+    .pharmacist-detail-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .pharmacist-dispense-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+
+    .pharmacist-dispense-grid
+    > .pharmacist-card
+    > .pharmacist-card-header {
+        min-height: 76px !important;
+        padding: 16px 18px !important;
+    }
+
+    .pharmacist-dispense-medicine {
+        padding: 22px 18px !important;
+    }
+
+    .pharmacist-dispense-medicine strong {
+        font-size: 18px !important;
+    }
+
+    .pharmacist-detail-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        padding: 18px !important;
+    }
+
+    .pharmacist-detail-item {
+        padding: 10px !important;
+    }
+
+    .pharmacist-prescription-details {
+        width: calc(100% - 36px) !important;
+        margin: 0 18px !important;
+
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 18px 10px !important;
+    }
+
+    .pharmacist-instructions {
+        margin-left: 18px !important;
+        margin-right: 18px !important;
+    }
+
+    .pharmacist-dispense-grid
+    > .pharmacist-card:nth-child(2)
+    > form {
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+    }
+
+    .pharmacist-dispense-grid
+    > .pharmacist-card:nth-child(2)
+    > form
+    > .pharmacist-form-actions {
+        grid-template-columns: 1fr !important;
+    }
+
+    .pharmacist-dispense-grid
+    > .pharmacist-card:nth-child(2)
+    > form
+    > .pharmacist-form-actions
+    > button {
+        width: 100% !important;
+    }
+}

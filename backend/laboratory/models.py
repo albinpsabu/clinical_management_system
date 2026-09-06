@@ -54,6 +54,21 @@ class LabResult(models.Model):
         auto_now=True
     )
 
+    def save(self, *args, **kwargs):
+
+        if not self.result_id:
+            last_result = LabResult.objects.order_by("-id").first()
+
+            next_number = (
+                last_result.id + 1
+                if last_result
+                else 1
+            )
+
+            self.result_id = f"LABR{next_number:06d}"
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return (
             f"{self.result_id} - "
@@ -70,7 +85,8 @@ class LabBill(models.Model):
 
     bill_id = models.CharField(
         max_length=20,
-        unique=True
+        unique=True,
+        blank=True
     )
 
     patient = models.ForeignKey(
@@ -104,6 +120,21 @@ class LabBill(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def save(self, *args, **kwargs):
+
+        if not self.bill_id:
+            last_bill = LabBill.objects.order_by("-id").first()
+
+            next_number = (
+                last_bill.id + 1
+                if last_bill
+                else 1
+            )
+
+            self.bill_id = f"LBILL{next_number:06d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (

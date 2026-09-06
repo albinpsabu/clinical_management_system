@@ -60,6 +60,18 @@ class Consultation(models.Model):
         auto_now=True
     )
 
+    def save(self, *args, **kwargs):
+        if not self.consultation_id:
+            last_consultation = Consultation.objects.order_by("-id").first()
+            next_number = (
+                last_consultation.id + 1
+                if last_consultation
+                else 1
+            )
+            self.consultation_id = f"CON{next_number:06d}"
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return (
             f"{self.consultation_id} - "
@@ -112,6 +124,20 @@ class MedicinePrescription(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+    def save(self, *args, **kwargs):
+        if not self.prescription_id:
+            last_prescription = (
+                MedicinePrescription.objects.order_by("-id").first()
+            )
+            next_number = (
+                last_prescription.id + 1
+                if last_prescription
+                else 1
+            )
+            self.prescription_id = f"MEDP{next_number:06d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (
@@ -173,6 +199,20 @@ class LabPrescription(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True
     )
+
+    def save(self, *args, **kwargs):
+        if not self.lab_request_id:
+            last_request = (
+                LabPrescription.objects.order_by("-id").first()
+            )
+            next_number = (
+                last_request.id + 1
+                if last_request
+                else 1
+            )
+            self.lab_request_id = f"LABP{next_number:06d}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (

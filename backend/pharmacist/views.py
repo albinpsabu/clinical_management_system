@@ -1,6 +1,5 @@
 from datetime import timedelta
 from decimal import Decimal
-from uuid import uuid4
 
 from django.db import transaction
 from django.utils import timezone
@@ -633,15 +632,13 @@ class MedicineDispensingListCreateView(APIView):
 
         # ----------------------------------------------------
         # CREATE DISPENSING RECORD
+        #
+        # dispensing_id is generated automatically
+        # by MedicineDispensing.save()
         # ----------------------------------------------------
-
-        dispensing_id = (
-            f"DISP-{uuid4().hex[:10].upper()}"
-        )
 
         dispensing = (
             MedicineDispensing.objects.create(
-                dispensing_id=dispensing_id,
 
                 patient=patient,
 
@@ -703,11 +700,11 @@ class MedicineDispensingListCreateView(APIView):
 
         else:
 
+            # bill_id is generated automatically
+            # by MedicineBill.save()
+
             bill = (
                 MedicineBill.objects.create(
-                    bill_id=(
-                        f"BILL-{uuid4().hex[:10].upper()}"
-                    ),
 
                     patient=patient,
 
@@ -947,23 +944,13 @@ class MedicineBillListCreateView(APIView):
 
         # ----------------------------------------------------
         # CREATE NEW BILL
+        #
+        # bill_id is generated automatically
+        # by MedicineBill.save()
         # ----------------------------------------------------
-
-        bill_id = (
-            serializer.validated_data.get(
-                "bill_id"
-            )
-        )
-
-        if not bill_id:
-
-            bill_id = (
-                f"BILL-{uuid4().hex[:10].upper()}"
-            )
 
         bill = (
             MedicineBill.objects.create(
-                bill_id=bill_id,
 
                 patient=patient,
 

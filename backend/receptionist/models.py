@@ -12,7 +12,8 @@ class ConsultationBill(models.Model):
 
     bill_id = models.CharField(
         max_length=20,
-        unique=True
+        unique=True,
+        blank=True
     )
 
     patient = models.ForeignKey(
@@ -56,10 +57,22 @@ class ConsultationBill(models.Model):
     )
 
     def save(self, *args, **kwargs):
+
+        if not self.bill_id:
+            last_bill = ConsultationBill.objects.order_by("-id").first()
+
+            if last_bill:
+                number = last_bill.id + 1
+            else:
+                number = 1
+
+            self.bill_id = f"BILL{number:06d}"
+
         self.total_amount = (
             self.registration_fee +
             self.consultation_fee
         )
+
         super().save(*args, **kwargs)
 
     def __str__(self):
