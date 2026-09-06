@@ -219,9 +219,17 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
     # --------------------------------------------------------
     # CREATE DOCTOR
     # --------------------------------------------------------
-
     @transaction.atomic
     def create(self, validated_data):
+
+        # ----------------------------------------------------
+        # Username and password
+        # Remove them from validated_data because they belong
+        # to the User model, not the Doctor model.
+        # ----------------------------------------------------
+
+        username = validated_data.pop("username")
+        password = validated_data.pop("password")
 
         # ----------------------------------------------------
         # User-related fields
@@ -242,50 +250,26 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
         )
 
         # ----------------------------------------------------
-        # Username and password
-        # ----------------------------------------------------
-
-        username = self.initial_data.get(
-            "username"
-        )
-
-        password = self.initial_data.get(
-            "password"
-        )
-
-        # ----------------------------------------------------
         # Final validation
         # ----------------------------------------------------
 
         if not username:
-
             raise serializers.ValidationError({
-                "username": (
-                    "Username is required when creating "
-                    "a doctor."
-                )
+                "username": "Username is required when creating a doctor."
             })
 
         if not password:
-
             raise serializers.ValidationError({
-                "password": (
-                    "Password is required when creating "
-                    "a doctor."
-                )
+                "password": "Password is required when creating a doctor."
             })
 
         if not email:
-
             raise serializers.ValidationError({
-                "email": (
-                    "Email is required when creating "
-                    "a doctor."
-                )
+                "email": "Email is required when creating a doctor."
             })
 
         # ----------------------------------------------------
-        # Check username again before creating User
+        # Check username
         # ----------------------------------------------------
 
         if User.objects.filter(
@@ -313,15 +297,6 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
 
         # ----------------------------------------------------
         # Create Doctor
-        #
-        # doctor_id is NOT supplied by frontend.
-        #
-        # Doctor.save() automatically generates:
-        #
-        # DOC000001
-        # DOC000002
-        # DOC000003
-        # ...
         # ----------------------------------------------------
 
         doctor = Doctor.objects.create(
@@ -330,7 +305,6 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
         )
 
         return doctor
-
     # --------------------------------------------------------
     # UPDATE DOCTOR
     # --------------------------------------------------------
